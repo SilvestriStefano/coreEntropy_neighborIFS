@@ -2,12 +2,13 @@
 The up-to-date and documented code for my research on the connection between the Mandelbrot set and the Thurston set.
 
 ## TODOs :
-    - [ ] refactor the KneadToRat function
-    - [ ] create python modules from the code in the jupyter notebooks
-    - [ ] make some example on how to use this code
-    - [ ] write down the theory
-    - [ ] figure out another way to draw graphs other than Gephi
-    - [ ] import Mathematica notebooks (?)
+- [ ] refactor the KneadToRat function
+- [ ] create python modules from the code in the jupyter notebooks
+- [ ] make some example on how to use this code
+- [ ] write down the theory
+- [ ] figure out another way to draw graphs other than Gephi
+- [ ] write a recursive function that erases vertices with out degree equal to 0.
+- [ ] import Mathematica notebooks (?)
 
 ### folder's description
  
@@ -19,6 +20,6 @@ The up-to-date and documented code for my research on the connection between the
 
 - `scripts`: scripts - Python and bash alike - as well as .ipynb notebooks.
 
-- `src`: reusable Python modules for your project. 
+- `src`: reusable Python modules for the project. 
 
-- `tests`: tests for your code.
+- `tests`: tests for the code.
