@@ -1,6 +1,8 @@
 # coreEntropy_neighborIFS
 The up-to-date and documented code for my research on the connection between the Mandelbrot set and the Thurston set.
 
+[THEORY SLIDES](https://slides.com/silvas/qsconjcoreentropy)
+
 ## TODOs :
 - [ ] refactor the KneadToRat function
 - [ ] create python modules from the code in the jupyter notebooks
