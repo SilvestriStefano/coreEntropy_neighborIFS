@@ -1,2 +1,2 @@
 # coreEntropy_neighborIFS
-The most up-to-date code for my research
+The up-to-date and documented code for my research on the connection between the Mandelbrot set and the Thurston set.
