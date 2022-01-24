@@ -82,8 +82,8 @@ class Angle:
         orb = self.orbit() if orbit is None else orbit
         perLen = self.period(orb)[1] if period is None else period[1]
         
-        for num in orb:
-            if num<Frac(self.num+self.den,2*self.den):
+        for numb in orb:
+            if numb<Frac(self.num+self.den,2*self.den):
                 ks+='1'
             else:
                 ks+='0'
