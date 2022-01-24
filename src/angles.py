@@ -101,10 +101,13 @@ class Angle:
         an entry of 1 in the ks corresponds to a change of sign in the itinerary,
         while an entry of 0 in the ks corresponds to the previous sign.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         ks: str
             the kneading sequence
+
+        Arguments
+        ---------
         orbit: list
             the orbit of the angle
         period: list
@@ -173,10 +176,13 @@ class Angle:
         """
         finds the period length of the itinerary of 0 in the attractor.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         itin: str
             the itinerary of 0
+
+        Arguments
+        ---------
         period: list
             the index indicating where the period of the orbit starts and the length of it
 
@@ -196,11 +202,14 @@ class Angle:
     def itin_to_rat(self, itin, period, pow_symb = '**'):
         """
         finds the numerator of the rational function associated to the itinerary of 0.
+        
+        Parameters
+        ----------
+        itin: str
+            the itinerary of 0
 
         Arguments
         ---------
-        itin: str
-            the itinerary of 0
         period: list
             the index indicating where the period of the orbit starts and the length of it
         pow_symb: str
