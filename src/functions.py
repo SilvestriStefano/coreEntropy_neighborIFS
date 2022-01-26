@@ -164,6 +164,9 @@ def neighGraphAlg(z,maxDepth):
         #update the list of new vertices with the newly found vertices
         newVertices = newChildren
         depth += 1
-        
-    
+
+    #remove the vertices that have no children
+    for k,v in edges.items():
+        if len(v)==0:
+            edges = nested_delete(edges,k)
     return edges
