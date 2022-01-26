@@ -6,14 +6,14 @@ from mpmath import mp
 from nested_lookup import nested_delete
 
 
-def neighGraphAlg(z,maxDepth):
+def neighGraphAlg(param,maxDepth):
     """
     finds the edges in the neighbor graph for
     the parameter z.
 
     Parameters
     ----------
-    z: complex number
+    param: complex number
         the parameter to check
     
     Attributes
