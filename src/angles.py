@@ -42,7 +42,13 @@ class Angle:
         Use the attribute `perLen` to get the length of the period.
         
         """
-        orb = self.orbit_list
+        try: 
+            orb = self.orbit_list
+        except:
+            # print("period()->orbit was not called")
+            self.orbit()
+            orb = self.orbit_list
+            # print("----------period()------------")
         
         self.start_index_per = orb.index(orb[-1]) #where the period starts in the orbit
         self.per_len = (len(orb)-self.start_index_per)-1 #length of the period in ks
@@ -56,15 +62,29 @@ class Angle:
         
         """
         self.ks=''
-        orb = self.orbit_list
-        
+        try: 
+            orb = self.orbit_list
+        except:
+            # print("  ks_from_angle()->orbit was not called")
+            self.orbit()
+            orb = self.orbit_list
+            # print("  ---------ks_from_angle()1------------")
+
         for numb in orb:
             if numb<Frac(self.num+self.den,2*self.den):
                 self.ks+='1'
             else:
                 self.ks+='0'
+        
+        try: 
+            period_length = self.per_len
+        except:
+            # print("  ks_from_angle()->period was not called")
+            self.period()
+            period_length = self.per_len
+            # print("  ----------ks_from_angle()2------------")
 
-        if self.per_len==1:
+        if period_length==1:
             self.ks=self.ks[:-1]
             self.ks+='0'
 
@@ -83,8 +103,17 @@ class Angle:
         self.itin='+-' #we assume that ks starts with 1
         lastSign='-' #the current last symbol in the itinerary
 
-        for i in range(1,len(self.ks)):
-            vi=self.ks[i]
+        try:
+            kn_seq = self.ks
+        except:
+            # print("    attr_itin_from_ks()->ks_from_angle was not called")
+            self.ks_from_angle()
+            kn_seq = self.ks
+            # print("    ---------------attr_itin_from_ks()1--------------")
+
+
+        for i in range(1,len(kn_seq)):
+            vi=kn_seq[i]
             if vi=='1':
                 if lastSign=='+':
                     self.itin+='-'
@@ -99,17 +128,26 @@ class Angle:
                 else:
                     self.itin+='-'
                     lastSign='-'
-        
-        orb = self.orbit_list
-        
-        if self.per_len==1: 
+
+        try: 
+            period_length = self.per_len
+            starting_index = self.start_index_per
+        except:
+            # print("    attr_itin_from_ks()->either orbit and-or period was not called")
+            self.orbit()
+            self.period()
+            period_length = self.per_len    
+            starting_index = self.start_index_per
+            # print("    -------------------attr_itin_from_ks()2-----------------------")
+
+        if period_length==1:
             #if the period of ks is 1, then the itin is complete, so remove the last char
             self.itin=self.itin[:-1]
         else:
             #otherwise check if the period of the itin is twice the one of the ks
             temp=''
-            for i in range(self.start_index_per,len(self.ks)):
-                vi=self.ks[i]
+            for i in range(starting_index,len(kn_seq)):
+                vi=kn_seq[i]
                 if vi=='1':
                     if lastSign=='+':
                         temp+='-'
@@ -125,7 +163,7 @@ class Angle:
                         temp+='-'
                         lastSign='-'
 
-            if temp!=self.itin[self.start_index_per+1:]:
+            if temp!=self.itin[starting_index+1:]:
                 self.itin+=temp
 
 
@@ -134,7 +172,15 @@ class Angle:
         finds the period length of the itinerary of 0 in the attractor.
         Use the attribute `perLenItin` to get the value.
         """
-        self.itin_per_len = self.per_len if self.per_len==1 else (len(self.itin)-self.start_index_per-1)
+        try:
+            it = self.itin
+        except:
+            # print("      period_length_itin()->attr_itin_from_ks was not called")
+            self.attr_itin_from_ks()
+            it = self.itin
+            # print("      -----------period_length_itin()-----------------------")
+
+        self.itin_per_len = self.per_len if self.per_len==1 else (len(it)-self.start_index_per-1)
 
 
     def itin_to_rat(self, pow_symb = '**'):
@@ -150,18 +196,32 @@ class Angle:
             the result in Mathematica.
 
         """
+        try:
+            it = self.itin
+        except:
+            # print("        itin_to_rat()->attr_itin_from_ks was not called")
+            self.attr_itin_from_ks()
+            it = self.itin
+            # print("        ---------------itin_to_rat()1------------------")
+        try:
+            it_period = self.itin_per_len
+        except:
+            # print("        itin_to_rat()->period_length_itin was not called")
+            self.period_length_itin()
+            it_period = self.itin_per_len
+            # print("        ----------------itin_to_rat()2------------------")
 
         self.rat_func = '('
         
-        for pos in range(len(self.itin)):
-            if ((self.itin_per_len==1) & (pos==self.start_index_per)) :
-                self.rat_func += ')*(1-x) +('+self.itin[pos]+'x'+pow_symb+str(pos)+')'
+        for pos in range(len(it)):
+            if ((it_period==1) & (pos==self.start_index_per)) :
+                self.rat_func += ')*(1-x) +('+it[pos]+'x'+pow_symb+str(pos)+')'
             elif pos==self.start_index_per+1:
-                self.rat_func += ')*(1-x'+pow_symb+str(self.itin_per_len)+') +('+self.itin[pos]+'x'+pow_symb+str(pos)
-            elif pos==len(self.itin)-1:
-                self.rat_func += self.itin[pos]+'x'+pow_symb+str(pos)+')'
+                self.rat_func += ')*(1-x'+pow_symb+str(it_period)+') +('+it[pos]+'x'+pow_symb+str(pos)
+            elif pos==len(it)-1:
+                self.rat_func += it[pos]+'x'+pow_symb+str(pos)+')'
             else:
-                self.rat_func += self.itin[pos]+'x'+pow_symb+str(pos)
+                self.rat_func += it[pos]+'x'+pow_symb+str(pos)
         
 
     def assoc_lambda(self):
@@ -170,11 +230,18 @@ class Angle:
         
         Use the attribute `lam` to get the result
         """
+        try:
+            num_poly = self.rat_func.replace('^','**')
+        except:
+            # print("          assoc_lambda()->itin_to_rat was not called")
+            self.itin_to_rat()
+            num_poly = self.rat_func
+            # print("          --------------assoc_lambda()--------------")
 
         x = Symbol('x')
         f = Function('f')(x)
 
-        f = simplify(self.rat_func)
+        f = simplify(num_poly)
         allroots = solveset(f)
         la = Intersection(allroots,ConditionSet(x,( np.abs(x)<=(1/np.sqrt(2)) ), S.Complexes ))
         try:
