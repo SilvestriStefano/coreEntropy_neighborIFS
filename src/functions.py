@@ -35,7 +35,7 @@ def nbhG(param,maxDepth):
     phiStar = z*param**(-1)# corresponds to fpm^(-1) g fpm
     
     
-    err = 1e-30
+    err = 1e-29
     prec = 30
     #initialize the dictionary of vertices in the graph
     vertices = {
@@ -175,6 +175,14 @@ def nbhG(param,maxDepth):
         depth += 1
 
     #remove the vertices that have no children
+    #first find those with out-degree = 0 and remove them
+    #i.e. those keys in `vertices`` that are not first-level key in `edges` 
+    #then remove from `edges` the remaining first-level keys without properties
+    #and all of its other instances
+    nullOutDegre={k for k in vertices.keys() if k not in edges.keys()}
+    for k in nullOutDegre:
+        edges = nested_delete(edges,k)
+
     for k,v in edges.items():
         if len(v)==0:
             edges = nested_delete(edges,k)
