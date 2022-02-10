@@ -24,7 +24,10 @@ class Angle:
         self.frac = Frac(self.num,self.den)
 
     def __repr__(self):
-        print(f"the angle {self.frac}")
+        return f"Angle({self.num},{self.den})"
+        
+    def __str__(self):
+        return f"The angle is {self.frac}"
 
     def orbit(self):
         """
