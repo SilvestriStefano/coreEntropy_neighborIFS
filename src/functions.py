@@ -188,3 +188,96 @@ def nbhG(param,maxDepth):
             edges = nested_delete(edges,k)
 
     return edges
+
+
+from src import angles as ang
+from fractions import Fraction as Frac
+from numpy import sort as npsort
+from numpy import array as nparray
+from numpy import ones as npones
+from numpy import where as npwhere
+from numpy import append as npappend
+
+from scipy.sparse import csr_matrix
+from scipy.sparse.linalg import eigs
+
+def core_entropy(num, den):
+    #define a new rational angle
+    theta = ang.Angle(num,den)
+    
+    thetaFr = theta.frac #represent it as a fraction
+   
+    #compute the orbit and find the period
+    theta.period()
+    orb = theta.orbit_list
+    period_length = theta.per_len
+    period_start = theta.start_index_per
+    preperiod_length = len(orb)-1-period_length
+    
+    #partition of the circle
+    intOne = (thetaFr*Frac(1,2),(thetaFr+Frac(1,1))*Frac(1,2))
+    
+    print(f"The angle is {thetaFr} \n which has a preperiod of {preperiod_length} and a period of {period_length} \n and the orbit is {orb}\n")
+    print(f"partition the circle in two intervals: {intOne} and {(intOne[1],intOne[0])}\n")
+    
+    #create the vertex set of the wedge
+    tuples = nparray(["%d-%d"%(i,j) for i in range(1,len(orb)) for j in range(1,len(orb)) if i<j])
+    print(f"tuples is {tuples}\n")
+    
+    #define the separated and non-separated vertices
+    dicTuples = {}
+    entries = 0
+    indices = nparray([],dtype=int)
+    indptr = nparray([0],dtype=int)
+    
+    for tup in tuples:
+        i,j=tup.split('-')
+        i=int(i)
+        j=int(j)
+        max_ind = len(orb)-1
+        
+        print(f"the tuple {tup} corresponding to the angles {orb[i-1]} and {orb[j-1]}")
+
+        if ((intOne[0]<orb[i-1]<=intOne[1] and intOne[0]<orb[j-1]<=intOne[1]) or (intOne[1]<=orb[i-1] and intOne[1]<=orb[j-1])):
+            print("is not separated")
+            if (j+1)<=max_ind:
+                target = str(i+1)+'-'+str(j+1)
+            else:
+                new_j = (j+1+preperiod_length)%max_ind
+                new_i = i+1
+                target = str(new_i)+'-'+str(new_j) if new_i<new_j else str(new_j)+'-'+str(new_i)
+            print(f"target = {target}")
+            index = npwhere(tuples==target)[0][0]
+            print(f"the target is {target} which has index {index}\n")
+            indices = npappend(indices,index)
+            dicTuples.update({tup:{'sep':False,'mapsTo':[target]}})
+            entries += 1
+        else:
+            print("is separated")
+            target_one = str(1)+'-'+str(i+1) if (i+1)<=max_ind else str(1)+'-'+str((i+1+preperiod_length)%max_ind)
+            print(f"target one = {target_one}")
+            target_two = str(1)+'-'+str(j+1) if (j+1)<=max_ind else str(1)+'-'+str((j+1+preperiod_length)%max_ind)
+            print(f"target two = {target_two}")
+            index_one = npwhere(tuples==target_one)[0][0]
+            index_two = npwhere(tuples==target_two)[0][0]
+            print(f"the target_one is {target_one} which has index {index_one}")
+            print(f"the target_two is {target_two} which has index {index_two}\n")
+            indices = npappend(indices,index_one)
+            indices = npappend(indices,index_two)
+            dicTuples.update({tup:{'sep':True,'mapsTo':[target_one,target_two]}})
+            entries += 2
+        indptr = npappend(indptr,entries)
+    
+    data = npones(entries,dtype='float64')
+    adj_matrix = csr_matrix((data, indices, indptr), shape=(len(tuples),len(tuples)))
+    evals = eigs(adj_matrix,k=len(tuples)-2, which='LM',sigma=0.999,return_eigenvectors=False)
+    
+    print(dicTuples)
+    print("\n")
+    print(f"data = {data}")
+    print(f"indices = {indices}")
+    print(f"indptr = {indptr}")
+    print(csr_matrix((data, indices, indptr), shape=(len(tuples),len(tuples))).toarray())
+    print(f"evals using sparse {evals}")
+
+    return evals

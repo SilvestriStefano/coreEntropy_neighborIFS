@@ -4,9 +4,10 @@ The up-to-date and documented code for my research on the connection between the
 [THEORY SLIDES](https://slides.com/silvas/qsconjcoreentropy)
 
 ## TODOs :
-- [ ] write python code to calculate the Core Entropy
-- [ ] refactor the KneadToRat function
-- [ ] create python modules from the code in the jupyter notebooks
+- [x] write python code to calculate the Core Entropy 
+- [ ] fix eigenvalue problem in the core_entropy
+- [x] refactor the KneadToRat function
+- [x] create python modules from the code in the jupyter notebooks
 - [ ] make some example on how to use this code
 - [ ] write down the theory
 - [ ] figure out another way to draw graphs other than Gephi
