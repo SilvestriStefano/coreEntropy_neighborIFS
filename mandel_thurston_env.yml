@@ -9,6 +9,7 @@ dependencies:
   - numpy
   - numba>=0.50
   - sympy
+  - scipy
 
   # Analysis
   - jupyter
