@@ -16,6 +16,7 @@ One endgoal of this project is to create a RESTful API from which one can obtain
 - [ ] figure out another way to draw graphs other than Gephi
 - [ ] write a recursive function that erases vertices with out degree equal to 0.
 - [ ] import Mathematica notebooks (?)
+- [ ] write function that obtains the landing parameter in the Mandelbrot set from angle (check Wolf Jung's work)
 
 ### folder's description
  
