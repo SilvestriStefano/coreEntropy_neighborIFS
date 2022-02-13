@@ -1,7 +1,7 @@
 # coreEntropy_neighborIFS
 The up-to-date and documented code for my research on the connection between the Mandelbrot set and the Thurston set.
 
-The endgoal of this project is to create a RESTful API from which one can obtain all the necessary information regarding a rational angle in the context of the Mandelbrot and Thurston set.  
+One endgoal of this project is to create a RESTful API from which one can obtain all the necessary information regarding a rational angle in the context of the Mandelbrot and Thurston set.  
 
 
 [THEORY SLIDES](https://slides.com/silvas/qsconjcoreentropy)
