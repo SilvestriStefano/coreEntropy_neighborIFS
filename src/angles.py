@@ -78,8 +78,10 @@ class Angle:
             # print("  ---------ks_from_angle()1------------")
 
         for numb in orb:
-            if numb<Frac(self.num+self.den,2*self.den):
+            if Frac(self.num,2*self.den) < numb < Frac(self.num+self.den,2*self.den):
                 self.ks+='1'
+            elif numb == Frac(self.num,2*self.den) or numb == Frac(self.num+self.den,2*self.den)
+                self.ks+='*'
             else:
                 self.ks+='0'
         
