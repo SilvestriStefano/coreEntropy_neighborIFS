@@ -31,7 +31,7 @@ def nbhG(param,maxDepth):
     phiStar = Function('phiStar')(z)
     
     phiPM = (z-2)*param**(-1)# corresponds to fp^(-1) g fm
-    phiMP = (z+2)*param**(-1)# corresponds to fp^(-1) g fp
+    phiMP = (z+2)*param**(-1)# corresponds to fm^(-1) g fp
     phiStar = z*param**(-1)# corresponds to fpm^(-1) g fpm
     
     
@@ -40,23 +40,25 @@ def nbhG(param,maxDepth):
     #initialize the dictionary of vertices in the graph
     vertices = {
         'id':0.,
-        'h1':phiPM.evalf(prec,subs={z:0}),
-        'h2':phiMP.evalf(prec,subs={z:0})
+        'h1':phiMP.evalf(prec,subs={z:0}) 
+        # 'h1':phiPM.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
     }
     #initialize the dictionary of new vertices at the current stage
     newVertices = {
-        'h1':phiPM.evalf(prec,subs={z:0}),
-        'h2':phiMP.evalf(prec,subs={z:0})
+        'h1':phiPM.evalf(prec,subs={z:0})
+        # 'h2':phiMP.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
     }
     #initialize the dictionary of edges between the vertices
     edges = {
-        'id':{'h1':{'label':'+ -','weight':0.75},
-              'h2':{'label':'- +','weight':0.25}}
+        'id':{
+              'h1':{'label':'- +','weight':0.25}
+            # 'h1':{'label':'+ -','weight':0.75}#thanks to symmetry we can avoid this
+            }
     }
     
     
     depth = 0
-    neighborIndex = 2; #the label of the last vertex created
+    neighborIndex = 1 #the label of the last vertex created
     
     criticalRad = (2*(1-Abs(param))**(-1)).evalf(prec) #the escape radius
     while len(newVertices) and depth<maxDepth:
@@ -208,10 +210,8 @@ def core_entropy(num, den):
     thetaFr = theta.frac #represent it as a fraction
    
     #compute the orbit and find the period
-    theta.period()
+    period_length, period_start = theta.period()
     orb = theta.orbit_list
-    period_length = theta.per_len
-    period_start = theta.start_index_per
     preperiod_length = len(orb)-1-period_length
     
     #partition of the circle
