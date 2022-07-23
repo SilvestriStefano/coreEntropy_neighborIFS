@@ -80,7 +80,7 @@ class Angle:
         for numb in orb:
             if Frac(self.num,2*self.den) < numb < Frac(self.num+self.den,2*self.den):
                 self.ks+='1'
-            elif numb == Frac(self.num,2*self.den) or numb == Frac(self.num+self.den,2*self.den)
+            elif numb == Frac(self.num,2*self.den) or numb == Frac(self.num+self.den,2*self.den):
                 self.ks+='*'
             else:
                 self.ks+='0'
@@ -93,9 +93,12 @@ class Angle:
             period_length = self.per_len
             # print("  ----------ks_from_angle()2------------")
 
-        if period_length==1:
-            self.ks=self.ks[:-1]
-            self.ks+='0'
+        self.ks=self.ks[:-1]
+        # if period_length==1:
+        #     self.ks=self.ks[:-1]
+        #     self.ks+='0'
+        # else:
+        #     self.ks=self.ks[:-1]
 
     
     def attr_itin_from_ks(self):
@@ -225,7 +228,7 @@ class Angle:
         for pos in range(len(it)):
             if ((it_period==1) & (pos==self.start_index_per)) :
                 self.rat_func += ')*(1-x) +('+it[pos]+'x'+pow_symb+str(pos)+')'
-            elif pos==self.start_index_per+1:
+            elif (pos==self.start_index_per+1):
                 self.rat_func += ')*(1-x'+pow_symb+str(it_period)+') +('+it[pos]+'x'+pow_symb+str(pos)
             elif pos==len(it)-1:
                 self.rat_func += it[pos]+'x'+pow_symb+str(pos)+')'
