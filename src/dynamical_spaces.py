@@ -4,7 +4,7 @@ Julia set
 Attractor of an IFS
 """
 import numpy as np
-from numba import njit
+from numba import njit, prange
 
 @njit 
 def julia(c, z, x_dim = 500, y_dim = 500, max_iter = 100):
@@ -37,8 +37,8 @@ def julia(c, z, x_dim = 500, y_dim = 500, max_iter = 100):
     cntr = np.zeros_like(z, dtype=np.int64) #create a counter for each point in the plane
                                             #it will tell whether the parameter is in the filled julia set 
     
-    for y in range(y_dim):
-        for x in range(x_dim):
+    for y in prange(y_dim):
+        for x in prange(x_dim):
             it = 0
             while (np.abs(z[y][x]) <= 2) and (it <= max_iter):
                 z[y][x] = z[y][x]**2 + c #iterate 
