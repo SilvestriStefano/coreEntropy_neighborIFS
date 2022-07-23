@@ -4,7 +4,7 @@ Mandelbrot set
 Thurston set
 """
 import numpy as np
-from numba import njit
+from numba import njit, prange
 
 @njit
 def mandelbrot(c, x_dim = 500, y_dim = 500, max_iter = 100):
@@ -35,8 +35,8 @@ def mandelbrot(c, x_dim = 500, y_dim = 500, max_iter = 100):
     cntr = np.zeros_like(c, dtype=np.int64) #create a counter for each point in the plane
                                             #it will tell whether the parameter is in the mandelbrot set
     
-    for y in range(y_dim):
-        for x in range(x_dim):
+    for y in prange(y_dim):
+        for x in prange(x_dim):
             z = 0.0            #follow the orbit of the critical point
             it = 0             #count the iteration
             while (np.abs(z) <= max(2, np.abs(c[y][x])) ) and (it <= max_iter):
