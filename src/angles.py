@@ -124,8 +124,7 @@ class Angle:
             # print("    ---------------attr_itin_from_ks()1--------------")
 
 
-        for i in range(1,len(kn_seq)):
-            vi=kn_seq[i]
+        for vi in kn_seq[1:]:
             if vi=='1':
                 if lastSign=='+':
                     self.itin+='-'
@@ -158,8 +157,7 @@ class Angle:
         else:
             #otherwise check if the period of the itin is twice the one of the ks
             temp=''
-            for i in range(starting_index,len(kn_seq)):
-                vi=kn_seq[i]
+            for vi in kn_seq[starting_index:]:
                 if vi=='1':
                     if lastSign=='+':
                         temp+='-'
@@ -225,15 +223,15 @@ class Angle:
 
         self.rat_func = '('
         
-        for pos in range(len(it)):
-            if ((it_period==1) & (pos==self.start_index_per)) :
-                self.rat_func += ')*(1-x) +('+it[pos]+'x'+pow_symb+str(pos)+')'
-            elif (pos==self.start_index_per+1):
-                self.rat_func += ')*(1-x'+pow_symb+str(it_period)+') +('+it[pos]+'x'+pow_symb+str(pos)
-            elif pos==len(it)-1:
-                self.rat_func += it[pos]+'x'+pow_symb+str(pos)+')'
+        for index, sign in enumerate(it):
+            if ((it_period==1) & (index==self.start_index_per)) :
+                self.rat_func += ')*(1-x) +('+sign+'x'+pow_symb+str(index)+')'
+            elif (index==self.start_index_per+1):
+                self.rat_func += ')*(1-x'+pow_symb+str(it_period)+') +('+sign+'x'+pow_symb+str(index)
+            elif index==len(it)-1:
+                self.rat_func += sign+'x'+pow_symb+str(index)+')'
             else:
-                self.rat_func += it[pos]+'x'+pow_symb+str(pos)
+                self.rat_func += sign+'x'+pow_symb+str(index)
         
 
     def assoc_lambda(self):
