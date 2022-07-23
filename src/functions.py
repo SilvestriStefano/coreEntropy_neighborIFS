@@ -40,23 +40,25 @@ def nbhG(param,maxDepth):
     #initialize the dictionary of vertices in the graph
     vertices = {
         'id':0.,
-        'h1':phiPM.evalf(prec,subs={z:0}),
-        'h2':phiMP.evalf(prec,subs={z:0})
+        'h1':phiPM.evalf(prec,subs={z:0})
+        # 'h2':phiMP.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
     }
     #initialize the dictionary of new vertices at the current stage
     newVertices = {
-        'h1':phiPM.evalf(prec,subs={z:0}),
-        'h2':phiMP.evalf(prec,subs={z:0})
+        'h1':phiPM.evalf(prec,subs={z:0})
+        # 'h2':phiMP.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
     }
     #initialize the dictionary of edges between the vertices
     edges = {
-        'id':{'h1':{'label':'+ -','weight':0.75},
-              'h2':{'label':'- +','weight':0.25}}
+        'id':{
+            'h1':{'label':'+ -','weight':0.75}
+            #   'h2':{'label':'- +','weight':0.25}#thanks to symmetry we can avoid this
+            }
     }
     
     
     depth = 0
-    neighborIndex = 2; #the label of the last vertex created
+    neighborIndex = 1 #the label of the last vertex created
     
     criticalRad = (2*(1-Abs(param))**(-1)).evalf(prec) #the escape radius
     while len(newVertices) and depth<maxDepth:
