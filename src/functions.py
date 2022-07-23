@@ -31,7 +31,7 @@ def nbhG(param,maxDepth):
     phiStar = Function('phiStar')(z)
     
     phiPM = (z-2)*param**(-1)# corresponds to fp^(-1) g fm
-    phiMP = (z+2)*param**(-1)# corresponds to fp^(-1) g fp
+    phiMP = (z+2)*param**(-1)# corresponds to fm^(-1) g fp
     phiStar = z*param**(-1)# corresponds to fpm^(-1) g fpm
     
     
@@ -40,8 +40,8 @@ def nbhG(param,maxDepth):
     #initialize the dictionary of vertices in the graph
     vertices = {
         'id':0.,
-        'h1':phiPM.evalf(prec,subs={z:0})
-        # 'h2':phiMP.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
+        'h1':phiMP.evalf(prec,subs={z:0}) 
+        # 'h1':phiPM.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
     }
     #initialize the dictionary of new vertices at the current stage
     newVertices = {
@@ -51,8 +51,8 @@ def nbhG(param,maxDepth):
     #initialize the dictionary of edges between the vertices
     edges = {
         'id':{
-            'h1':{'label':'+ -','weight':0.75}
-            #   'h2':{'label':'- +','weight':0.25}#thanks to symmetry we can avoid this
+              'h1':{'label':'- +','weight':0.25}
+            # 'h1':{'label':'+ -','weight':0.75}#thanks to symmetry we can avoid this
             }
     }
     
