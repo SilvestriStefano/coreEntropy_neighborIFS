@@ -45,8 +45,8 @@ def nbhG(param,maxDepth):
     }
     #initialize the dictionary of new vertices at the current stage
     newVertices = {
-        'h1':phiPM.evalf(prec,subs={z:0})
-        # 'h2':phiMP.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
+        'h1':phiMP.evalf(prec,subs={z:0}) 
+        # 'h1':phiPM.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
     }
     #initialize the dictionary of edges between the vertices
     edges = {
