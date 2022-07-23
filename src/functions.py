@@ -210,10 +210,8 @@ def core_entropy(num, den):
     thetaFr = theta.frac #represent it as a fraction
    
     #compute the orbit and find the period
-    theta.period()
+    period_length, period_start = theta.period()
     orb = theta.orbit_list
-    period_length = theta.per_len
-    period_start = theta.start_index_per
     preperiod_length = len(orb)-1-period_length
     
     #partition of the circle
