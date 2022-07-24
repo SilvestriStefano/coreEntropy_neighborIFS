@@ -7,7 +7,7 @@ from nested_lookup import nested_delete
 import logging
 
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
 
 def nbhG(param,maxDepth):
@@ -208,7 +208,12 @@ from numpy import append as npappend
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigs
 
-def core_entropy(num, den):
+def core_entropy(*,num, den):
+    if type(num) is not int or type(den) is not int:
+        raise ValueError("Arguments should be integers or strings of integer")
+    if type(int(num)) is not int or type(int(den)) is not int:
+        raise ValueError("Arguments should be integers or strings of integer")
+
     #define a new rational angle
     theta = ang.Angle(num,den)
     
@@ -216,7 +221,7 @@ def core_entropy(num, den):
 
     if thetaFr==Frac(1,2):
         return 2.0
-    if thetaFr==Frac(0,1):
+    if thetaFr==Frac(0,1) or thetaFr==Frac(1,1) :
         return 0.0
    
     #compute the orbit and find the period
