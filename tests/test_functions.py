@@ -4,12 +4,10 @@ from pytest import approx, raises
 # import pytest
 
 @pytest.mark.parametrize("test_num_exact,test_den_exact,expected",[
-    (0,1,0.0),
+    (0,1,1.0),
     (1,2,2.0),
-    (1,1,0.0)
+    (1,1,1.0)
     ])
-
-
 def test_core_entropy_exact(test_num_exact,test_den_exact,expected):
     """
     check that the core_entropy returns the exact values for allowable input
@@ -20,7 +18,8 @@ def test_core_entropy_exact(test_num_exact,test_den_exact,expected):
 @pytest.mark.parametrize("test_num_approx,test_den_approx,expected",[
     (1,4,1.69562),
     (2,7,1.0),
-    (1,5,1.7455312)
+    (1,5,1.3953369),
+    (3,14,1.6180339)
     ])
 def test_core_entropy_approx(test_num_approx,test_den_approx,expected):
     """

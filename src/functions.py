@@ -222,7 +222,7 @@ def core_entropy(*,num, den):
     if thetaFr==Frac(1,2):
         return 2.0
     if thetaFr==Frac(0,1) or thetaFr==Frac(1,1) :
-        return 0.0
+        return 1.0
    
     #compute the orbit and find the period
     period_length, period_start = theta.period()
@@ -278,10 +278,10 @@ def core_entropy(*,num, den):
             entries += 1
         else:
             logging.debug(f"the tuple {tup} is separated")
-            target_one = str(1)+'-'+str(i+1) if (i+1)<=max_ind else str(1)+'-'+str(period_start+1 if (period_start+1)!=1 else i )
+            target_one = str(1)+'-'+str(i+1) if (i+1)<=max_ind else str(1)+'-'+str(period_start+1 if (period_start+1)!=1 else 0 )
             logging.debug(f"target one = {target_one}")
 
-            target_two = str(1)+'-'+str(j+1) if (j+1)<=max_ind else str(1)+'-'+str(period_start+1 if (period_start+1)!=1 else j )
+            target_two = str(1)+'-'+str(j+1) if (j+1)<=max_ind else str(1)+'-'+str(period_start+1 if (period_start+1)!=1 else 0 )
             logging.debug(f"target two = {target_two}")
             
             try: 
@@ -316,10 +316,14 @@ def core_entropy(*,num, den):
     kE = min(2,len(tuples)-2)
     
     adj_matrix = csr_matrix((data, indices, indptr), shape=(len(tuples),len(tuples)))
-    evals_small = eigs(adj_matrix,k=kE, sigma=0.00000001, which='LM',return_eigenvectors=False)
-    evals_mid = eigs(adj_matrix,k=kE, sigma=0.8999999, which='LM',return_eigenvectors=False)
-    evals_large = eigs(adj_matrix,k=kE, sigma=1.7999999, which='LM',return_eigenvectors=False)
-
+    try:
+        # evals_small = eigs(adj_matrix,k=kE, sigma=0.00000001, which='LM',return_eigenvectors=False)
+        # evals_mid = eigs(adj_matrix,k=kE, sigma=0.8999999, which='LM',return_eigenvectors=False)
+        evals_large = eigs(adj_matrix,k=kE, sigma=1.7999999, which='LM',return_eigenvectors=False)
+    except:
+        return 1.0
+    else:
+        return max(set([x.real for x in evals_large if abs(x.imag)<.0001]))
     logging.debug(csr_matrix((data, indices, indptr), shape=(len(tuples),len(tuples))).toarray())
     logging.debug(f"small evals using sparse {evals_small}")
     logging.debug(f"mid evals using sparse {evals_mid}")
