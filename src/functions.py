@@ -21,6 +21,82 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
+def check_vertices(
+    edges:dict,
+    vertices:dict,
+    new_children:dict,
+    current_h:str,
+    current_h_val:complex,
+    matching_h:list,
+    nb_index:int,
+    has_children:bool,
+    label:str,
+    R:complex,
+    err:float,
+    prec:int)->None:
+    """
+    It checks whether `current_h_val` is a new vertex and updates `edges` and `vertices` accordingly.
+    It also updates `new_children` if necessary. 
+
+    Parameters
+    ----------
+    edges: dict
+        the dictionary of edges between the vertices
+    vertices: dict
+        the dictionary of vertices in the graph
+    new_children: dict
+        the dictionary of new child vertices in the graph
+    current_h: str,
+        the vertex being considered
+    current_h_val: complex,
+        the complex value of the vertex being considered
+    matching_h: list,
+        the list of the computed neighbors already present in the list of vertices
+    nb_index: int,
+        the current neighbor index
+    has_children: bool,
+        boolean value representing the existence of children of a vertex
+    label: str,
+        the edge label in the graph
+    R: complex,
+        the critical radius
+    err: float,
+        the allowed epsilon of error
+    prec: int,
+        the level of precision in evaluation
+
+    Return
+    ------
+    None
+    """
+    
+    if len(matching_h)==0: # current_h_val is POSSIBLY a new vertex
+        if Abs(current_h_val).evalf(prec)<=R or Abs(Abs(current_h_val)-R).evalf(prec)<=err:
+            has_children = False # current_h_val IS a child vertex
+            nb_index+=1
+            new_children.update({f"h{nb_index}": current_h_val})
+            vertices.update({f"h{nb_index}": current_h_val})
+
+            #if the current vertex has already some connections
+            #update with a new one
+            #otherwise create a new one
+            if current_h in edges: 
+                edges[current_h].update({f"h{nb_index}":{'label':label}})                        
+            else:
+                edges.update({current_h:{f"h{nb_index}":{'label':label}}})
+        else: # current_h_val is NOT a VALID neighbor 
+            has_children = True
+
+    else: # current_h_val ALREADY EXISTS
+        has_children = False 
+        if current_h in edges:
+            edges[current_h].update({matching_h[0]:{'label':label}})
+        else:
+            edges.update({current_h:{matching_h[0]:{'label':label}}})
+
+
+
+
 def nbhG(param,maxDepth):
     """
     finds the edges in the neighbor graph for
@@ -51,8 +127,8 @@ def nbhG(param,maxDepth):
     phiStar = z*param**(-1)# corresponds to fpm^(-1) g fpm
     
     
-    err = 1e-29
-    prec = 30
+    err = 1e-14
+    prec = 15
     #initialize the dictionary of vertices in the graph
     vertices = {
         'id':0.,
@@ -98,8 +174,7 @@ def nbhG(param,maxDepth):
             matchPM = [key for key, value in vertices.items() if Abs(value-hPM).evalf(prec)<=err]
             matchMP = [key for key, value in vertices.items() if Abs(value-hMP).evalf(prec)<=err]
 
-
-
+            # check_vertices(edges,vertices,newChildren,keyNb,hStar,matchStar,neighborIndex,noChildStar,' * ',criticalRad,err,prec)
             if len(matchStar)==0: # phiStar is POSSIBLY a new vertex
                 if Abs(hStar).evalf(prec)<=criticalRad or Abs(Abs(hStar)-criticalRad).evalf(prec)<=err:
                     noChildStar = False # phiStar IS a child vertex
@@ -124,6 +199,7 @@ def nbhG(param,maxDepth):
                 else:
                     edges.update({keyNb:{matchStar[0]:{'label':' * ', 'weight': 0.5}}})
 
+            # check_vertices(edges,vertices,newChildren,keyNb,hPM,matchPM,neighborIndex,noChildPM,' + ',criticalRad,err,prec)
             if len(matchPM)==0: # phiPM is POSSIBLY a new vertex
                 if Abs(hPM).evalf(prec)<=criticalRad or Abs(Abs(hPM)-criticalRad).evalf(prec)<=err:
                     noChildPM = False # phiPM IS a child vertex
@@ -149,6 +225,7 @@ def nbhG(param,maxDepth):
                 else:
                     edges.update({keyNb:{matchPM[0]:{'label':'+ -', 'weight': 0.75}}})
 
+            # check_vertices(edges,vertices,newChildren,keyNb,hMP,matchMP,neighborIndex,noChildMP,' - ',criticalRad,err,prec)
             if len(matchMP)==0: # phiMP is POSSIBLY a new vertex
                 if Abs(hMP).evalf(prec)<=criticalRad or Abs(Abs(hMP)-criticalRad).evalf(prec)<=err:
                     noChildMP = False # phiMP IS a child vertex
