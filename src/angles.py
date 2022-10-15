@@ -205,7 +205,7 @@ class Angle:
         
         Return
         ------
-        self.perLenItin: int
+        self.itin_per_len: int
             The length of the periodic part of the itinerary.
         """
         try:
@@ -250,7 +250,10 @@ class Angle:
         
         for index, sign in enumerate(it):
             if ((it_period==1) & (index==self.start_index_per)) :
-                self.rat_func += ')*(1-x) +('+sign+'x'+pow_symb+str(index)+')'
+                if self.rat_func=='(': # special case when angle is 0/1
+                    self.rat_func = '1'
+                else:
+                    self.rat_func += ')*(1-x) +('+sign+'x'+pow_symb+str(index)+')'
             elif (index==self.start_index_per+1):
                 self.rat_func += ')*(1-x'+pow_symb+str(it_period)+') +('+sign+'x'+pow_symb+str(index)
             elif index==len(it)-1:
