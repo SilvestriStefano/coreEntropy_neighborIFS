@@ -126,9 +126,13 @@ def nbhG(param,maxDepth):
     phiMP = (z+2)*param**(-1)# corresponds to fm^(-1) g fp
     phiStar = z*param**(-1)# corresponds to fpm^(-1) g fpm
     
+    # phiPM = (z-2*param)
+    # phiMP = (z+2*param)
+    # phiStar = (z)
+
     
-    err = 1e-14
-    prec = 15
+    err = 1e-29
+    prec = 30
     #initialize the dictionary of vertices in the graph
     vertices = {
         'id':0.,
@@ -162,13 +166,20 @@ def nbhG(param,maxDepth):
         noChildStar = False
         noChildMP = False
         
+        logger.debug(f"{depth=} {newVertices=}")
         # ----------------------------- for each vertex in newVertices --------------------------------------------
         for keyNb,valNb in newVertices.items():
+            logger.debug(f"{keyNb=} and {valNb=}")
+            
             #compute the possible new neighbors
             hStar = phiStar.evalf(prec,subs={z:valNb})
             hPM = phiPM.evalf(prec,subs={z:valNb})
             hMP = phiMP.evalf(prec,subs={z:valNb})
             
+            logger.debug(f"{hStar=}")
+            logger.debug(f"{hPM=}")
+            logger.debug(f"{hMP=}")
+
             #check if the computed neighbors exist already in the list of vertices
             matchStar = [key for key, value in vertices.items() if Abs(value-hStar).evalf(prec)<=err]
             matchPM = [key for key, value in vertices.items() if Abs(value-hPM).evalf(prec)<=err]
@@ -176,7 +187,9 @@ def nbhG(param,maxDepth):
 
             # check_vertices(edges,vertices,newChildren,keyNb,hStar,matchStar,neighborIndex,noChildStar,' * ',criticalRad,err,prec)
             if len(matchStar)==0: # phiStar is POSSIBLY a new vertex
-                if Abs(hStar).evalf(prec)<=criticalRad or Abs(Abs(hStar)-criticalRad).evalf(prec)<=err:
+                logger.debug("phiStar is POSSIBLY a new vertex")
+                if Abs(hStar).evalf(prec)<=criticalRad*(Abs(param)**(depth+2)) or Abs(Abs(hStar)-criticalRad*(Abs(param)**(depth+2))).evalf(prec)<=err:
+                    logger.debug("phiStar IS a child vertex")
                     noChildStar = False # phiStar IS a child vertex
                     neighborIndex+=1
                     newChildren.update({f"h{neighborIndex}": hStar})
@@ -186,22 +199,30 @@ def nbhG(param,maxDepth):
                     #update with a new one
                     #otherwise create a new one
                     if keyNb in edges: 
+                        logger.debug(f"{keyNb=} is in edges, adding edge h{neighborIndex} with label *")
                         edges[keyNb].update({f"h{neighborIndex}":{'label':' * ', 'weight': 0.5}})                        
                     else:
+                        logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge h{neighborIndex} with label *")
                         edges.update({keyNb:{f"h{neighborIndex}":{'label':' * ', 'weight': 0.5}}})
                 else: # phiStar is NOT a VALID neighbor 
+                    logger.debug("phiStar is NOT a new vertex")
                     noChildStar = True
 
             else: # phiStar ALREADY EXISTS
+                logger.debug("phiStar ALREADY EXISTS")
                 noChildStar = False 
                 if keyNb in edges:
+                    logger.debug(f"{keyNb=} is in edges, adding edge {matchStar[0]} with label *")
                     edges[keyNb].update({matchStar[0]:{'label':' * ', 'weight': 0.5}})
                 else:
+                    logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge {matchStar[0]} with label *")
                     edges.update({keyNb:{matchStar[0]:{'label':' * ', 'weight': 0.5}}})
 
             # check_vertices(edges,vertices,newChildren,keyNb,hPM,matchPM,neighborIndex,noChildPM,' + ',criticalRad,err,prec)
             if len(matchPM)==0: # phiPM is POSSIBLY a new vertex
-                if Abs(hPM).evalf(prec)<=criticalRad or Abs(Abs(hPM)-criticalRad).evalf(prec)<=err:
+                logger.debug("phiPM is POSSIBLY a new vertex")
+                if Abs(hPM).evalf(prec)<=criticalRad*(Abs(param)**(depth+2)) or Abs(Abs(hPM)-criticalRad*(Abs(param)**(depth+2))).evalf(prec)<=err:
+                    logger.debug("phiPM IS a child vertex")
                     noChildPM = False # phiPM IS a child vertex
                     neighborIndex += 1
 
@@ -212,22 +233,29 @@ def nbhG(param,maxDepth):
                     #update with a new one
                     #otherwise create a new one
                     if keyNb in edges:
+                        logger.debug(f"{keyNb=} is in edges, adding edge h{neighborIndex} with label + -")
                         edges[keyNb].update({f"h{neighborIndex}":{'label':'+ -', 'weight': 0.75}})
                     else:
+                        logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge h{neighborIndex} with label + -")
                         edges.update({keyNb:{f"h{neighborIndex}":{'label':'+ -', 'weight': 0.75}}})
                 else: # phiPM is NOT a VALID neighbor 
                     noChildPM = True
 
             else: # phiPM ALREADY EXISTS
+                logger.debug("phiPM ALREADY EXISTS")
                 noChildStar = False
                 if keyNb in edges:
+                    logger.debug(f"{keyNb=} is in edges, adding edge {matchPM[0]} with label + -")
                     edges[keyNb].update({matchPM[0]:{'label':'+ -', 'weight': 0.75}})
                 else:
+                    logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge {matchPM[0]} with label + -")
                     edges.update({keyNb:{matchPM[0]:{'label':'+ -', 'weight': 0.75}}})
 
             # check_vertices(edges,vertices,newChildren,keyNb,hMP,matchMP,neighborIndex,noChildMP,' - ',criticalRad,err,prec)
             if len(matchMP)==0: # phiMP is POSSIBLY a new vertex
-                if Abs(hMP).evalf(prec)<=criticalRad or Abs(Abs(hMP)-criticalRad).evalf(prec)<=err:
+                logger.debug("phiMP is POSSIBLY a new vertex")
+                if Abs(hMP).evalf(prec)<=criticalRad*(Abs(param)**(depth+2)) or Abs(Abs(hMP)-criticalRad*(Abs(param)**(depth+2))).evalf(prec)<=err:
+                    logger.debug("phiMP IS a child vertex")
                     noChildMP = False # phiMP IS a child vertex
                     neighborIndex += 1
 
@@ -238,22 +266,28 @@ def nbhG(param,maxDepth):
                     #update with a new one
                     #otherwise create a new one
                     if keyNb in edges:
+                        logger.debug(f"{keyNb=} is in edges, adding edge h{neighborIndex} with label - +")
                         edges[keyNb].update({f"h{neighborIndex}":{'label':'- +', 'weight': 0.25}})
                     else:
+                        logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge h{neighborIndex} with label - +")
                         edges.update({keyNb:{f"h{neighborIndex}":{'label':'- +', 'weight': 0.25}}})
                 else: # phiMP is NOT a VALID neighbor 
                     noChildMP = True
 
             else: # phiMP ALREADY EXISTS
+                logger.debug("phiMP ALREADY EXISTS")
                 noChildStar = False
                 if keyNb in edges:
+                    logger.debug(f"{keyNb=} is in edges, adding edge {matchMP[0]} with label - +")
                     edges[keyNb].update({matchMP[0]:{'label':'- +', 'weight': 0.25}})
                 else:
+                    logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge {matchMP[0]} with label - +")
                     edges.update({keyNb:{matchMP[0]:{'label':'- +', 'weight': 0.25}}})
 
-            #in the case that all the computed neighbors are  not valid
+            #in the case that all the computed neighbors are not valid
             #save the current neighbor
             if noChildStar and noChildPM and noChildMP:
+                logger.debug(f"there are no new vertices. saving {keyNb=} in verticesWithNoChild")
                 verticesWithNoChild.update({keyNb: valNb})
         #------------------------------------- end for loop ----------------------------------------------------
         
