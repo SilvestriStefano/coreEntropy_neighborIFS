@@ -5,9 +5,11 @@ import pytest
 def pytest_generate_tests(metafunc):
     # called once per each test function
     funcarglist = metafunc.cls.params[metafunc.function.__name__]
+    funcidslist = metafunc.cls.ids[metafunc.function.__name__]
     argnames = sorted(funcarglist[0])
     metafunc.parametrize(
-        argnames, [[funcargs[name] for name in argnames] for funcargs in funcarglist]
+        argnames, [[funcargs[name] for name in argnames] for funcargs in funcarglist],
+        ids=funcidslist
     )
 
 class TestAngle:
@@ -37,6 +39,13 @@ class TestAngle:
             {'test_angle': Angle(1,2), 'expected': '(+x^0)*(1-x) +(-x^1)'},
             {'test_angle': Angle(1,6), 'expected': '(+x^0-x^1)*(1-x^4) +(+x^2+x^3-x^4-x^5)'}
         ]
+    }
+    ids = {
+        "test_period":["0/1","1/2","1/6"],
+        "test_ks_from_angle":["0/1","1/2","1/6"],
+        "test_attr_itin_from_ks":["0/1","1/2","1/6"],
+        "test_period_length_itin":["0/1","1/2","1/6"],
+        "test_itin_to_rat":["0/1","1/2","1/6"]
     }
 
     def test_period(self, test_angle,expected):
