@@ -33,7 +33,7 @@ test_data = {
         "assoc_lambda": 0.5+0.j
     },
     "1/6": {
-        "angle":Angle(1,6),
+        "angle":Angle(1,6), # Tame Twin Dragon
         "period":(2,1),
         "ks_from_angle": "110",
         "attr_itin_from_ks": "+-++--",
