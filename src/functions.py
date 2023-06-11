@@ -3,7 +3,7 @@ Module that contains functions
 """
 import logging
 
-from utils import nbhG
+from src.utils import nbhG
 
 # create logger
 logger = logging.getLogger(__name__)

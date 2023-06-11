@@ -1,4 +1,4 @@
-from neighbor import Neighbor
+from src.neighbor import Neighbor
 from sympy import Symbol, Function, Abs
 
 def is_child_neighbor(test_nbh:Neighbor, valid_nbhs:set, param:complex):
