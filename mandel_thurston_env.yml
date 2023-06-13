@@ -5,20 +5,21 @@ channels:
 
 dependencies:
   - python=3.8
-  - pip
-  - numpy
-  - numba>=0.50
-  - sympy
-  - scipy
+  - pip=23.1.2
+  - numpy=1.24.3
+  - numba=0.57.0
+  - sympy=1.12
+  - scipy=1.10.1
 
   # Analysis
-  - jupyter
-  - jupyterlab
-  - notebook
-  - matplotlib
+  - jupyter=1.0.0
+  - jupyterlab=4.0.1
+  - notebook=6.5.4
+  - matplotlib=3.7.1
  
   - pip:
-      - Fraction
-      - mpmath
-      - nested_lookup
-      - networkx
+      - Fraction==2.2.0
+      - nested_lookup==0.2.25
+      - networkx==3.1
+      - pytest==7.3.1
+      - pytest-cov==4.1.0

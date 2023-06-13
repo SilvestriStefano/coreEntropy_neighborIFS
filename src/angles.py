@@ -1,10 +1,20 @@
 """
 Module that contains dynamics properties of a rational angle
 """
-import numpy as np
+from pathlib import Path
 
+import numpy as np
 from fractions import Fraction as Frac
 from sympy import *
+
+import logging
+import logging.config
+
+log_conf_path = Path('.') / 'logging.conf'
+logging.config.fileConfig(log_conf_path)
+
+# create logger
+logger = logging.getLogger("default")
 
 
 class Angle:
@@ -52,16 +62,15 @@ class Angle:
         Return
         ------
         tuple of int
-            The first entry of the tuple is `self.perLen`, the length of the period.
+            The first entry of the tuple is `self.per_len`, the length of the period.
             The second entry of the tuple is `self.start_index_per`, the index of where the periodic part of the orbit starts.
         
         """
         try: 
             orb = self.orbit_list
-        except:
-            # print("period()->orbit was not called")
+        except AttributeError as e:
+            logger.debug("period()->orbit was not called, calling it now.")
             orb = self.orbit()
-            # print("----------period()------------")
         
         self.start_index_per = orb.index(orb[-1]) #where the period starts in the orbit
         self.per_len = (len(orb)-self.start_index_per)-1 #length of the period in ks
@@ -81,10 +90,9 @@ class Angle:
         self.ks=''
         try: 
             orb = self.orbit_list
-        except:
-            # print("  ks_from_angle()->orbit was not called")
+        except AttributeError as e:
+            logger.debug("ks_from_angle()->orbit was not called, calling it now")
             orb = self.orbit()
-            # print("  ---------ks_from_angle()1------------")
 
         for numb in orb:
             if Frac(self.num,2*self.den) < numb < Frac(self.num+self.den,2*self.den):
@@ -129,11 +137,9 @@ class Angle:
 
         try:
             kn_seq = self.ks
-        except:
-            # print("    attr_itin_from_ks()->ks_from_angle was not called")
+        except AttributeError as e:
+            logger.debug("attr_itin_from_ks()->ks_from_angle was not called, calling it now")
             kn_seq = self.ks_from_angle()
-            # print("    ---------------attr_itin_from_ks()1--------------")
-
 
         for vi in kn_seq[1:]:
             if vi=='1':
@@ -193,15 +199,14 @@ class Angle:
         
         Return
         ------
-        self.perLenItin: int
+        self.itin_per_len: int
             The length of the periodic part of the itinerary.
         """
         try:
             it = self.itin
-        except:
-            # print("      period_length_itin()->attr_itin_from_ks was not called")
+        except AttributeError as e:
+            logger.debug("period_length_itin()->attr_itin_from_ks was not called, calling it now")
             it = self.attr_itin_from_ks()
-            # print("      -----------period_length_itin()-----------------------")
 
         self.itin_per_len = self.per_len if self.per_len==1 else (len(it)-self.start_index_per-1)
         return self.itin_per_len
@@ -226,22 +231,23 @@ class Angle:
         """
         try:
             it = self.itin
-        except:
-            # print("        itin_to_rat()->attr_itin_from_ks was not called")
+        except AttributeError as e:
+            logger.debug("itin_to_rat()->attr_itin_from_ks was not called, calling it now")
             it = self.attr_itin_from_ks()
-            # print("        ---------------itin_to_rat()1------------------")
         try:
             it_period = self.itin_per_len
-        except:
-            # print("        itin_to_rat()->period_length_itin was not called")
+        except AttributeError as e:
+            logger.debug("itin_to_rat()->period_length_itin was not called, calling it now")
             it_period = self.period_length_itin()
-            # print("        ----------------itin_to_rat()2------------------")
 
         self.rat_func = '('
         
         for index, sign in enumerate(it):
             if ((it_period==1) & (index==self.start_index_per)) :
-                self.rat_func += ')*(1-x) +('+sign+'x'+pow_symb+str(index)+')'
+                if self.rat_func=='(': # special case when angle is 0/1
+                    self.rat_func = '1'
+                else:
+                    self.rat_func += ')*(1-x) +('+sign+'x'+pow_symb+str(index)+')'
             elif (index==self.start_index_per+1):
                 self.rat_func += ')*(1-x'+pow_symb+str(it_period)+') +('+sign+'x'+pow_symb+str(index)
             elif index==len(it)-1:
@@ -252,7 +258,8 @@ class Angle:
 
     def assoc_lambda(self):
         """
-        find the roots of the associated rational function inside the disc of radius 2^(-1/2)
+        find the roots of the associated rational function inside the disc of radius 2^(-0.5)+10^(-15).
+        If none is found it returns 0.+0.j.
         
         Return
         ------
@@ -261,20 +268,20 @@ class Angle:
         """
         try:
             num_poly = self.rat_func.replace('^','**')
-        except:
-            # print("          assoc_lambda()->itin_to_rat was not called")
+        except AttributeError as e:
+            logger.debug("assoc_lambda()->itin_to_rat was not called, calling it now.")
             num_poly = self.itin_to_rat()
-            # print("          --------------assoc_lambda()--------------")
 
         x = Symbol('x')
         f = Function('f')(x)
 
         f = simplify(num_poly)
         allroots = solveset(f)
-        la = Intersection(allroots,ConditionSet(x,( np.abs(x)<=(1/np.sqrt(2)) ), S.Complexes ))
+        la = Intersection(allroots,ConditionSet(x,( np.abs(x)<=(1/np.sqrt(2)+1e-15) ), S.Complexes ))
         try:
             self.lam = la.args[0]
             # raise Exception("possibly no roots")
-        except:
-            self.lam = la
+        except IndexError as e:
+            logger.error("Could not find any viable solution inside the disk of radius 2^(-0.5)")
+            self.lam = 0.+0.j
         return self.lam
