@@ -1,22 +1,15 @@
 """
 Module that contains functions
 """
-import logging
-
 from src.utils import nbhG
 
+import logging
+import logging.config
+
+logging.config.fileConfig('./src/logging.conf')
+
 # create logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s : %(message)s')
-# add formatter to ch
-ch.setFormatter(formatter)
-# add ch to logger
-logger.addHandler(ch)
+logger = logging.getLogger("default")
 
 
 def create_nbh_graph(param:complex, max_depth:int)->dict:

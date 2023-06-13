@@ -1,6 +1,14 @@
 from src.neighbor import Neighbor
 from sympy import Symbol, Function, Abs
 
+import logging
+import logging.config
+
+logging.config.fileConfig('./src/logging.conf')
+
+# create logger
+logger = logging.getLogger("default")
+
 def is_child_neighbor(test_nbh:Neighbor, valid_nbhs:set, param:complex):
     """
     Checks whether the neighbor is a child neighbor.
@@ -32,16 +40,16 @@ def is_child_neighbor(test_nbh:Neighbor, valid_nbhs:set, param:complex):
         diff = Abs(test_nbh.val-elem.val)
     
     if is_new: # test_nbh is POSSIBLY a new vertex
-        # logger.debug(f"\t {test_nbh.word} is POSSIBLY a new neighbor")
+        logger.debug(f"\t {test_nbh.word} is POSSIBLY a new neighbor")
         h_val = Abs(test_nbh.val)
         if h_val.evalf(prec)<=critical_rad or Abs(h_val-critical_rad).evalf(prec)<=err:
-            # logger.debug(f"\t\t {test_nbh.word} IS a child vertex\n\n")
+            logger.debug(f"\t{test_nbh.word} IS a child vertex\n")
             is_child = True # test_nbh IS a child vertex
         else: # phi_Star is NOT a VALID neighbor 
-            # logger.debug(f"\t\t {test_nbh.word} is NOT a new neighbor:\n\t\t {h_val=} {critical_rad=}\n\n")
+            logger.debug(f"\t{test_nbh.word} is NOT a new neighbor:\n\t\t {h_val=} {critical_rad=}\n")
             is_child = False
     else: # phi_Star ALREADY EXISTS
-        # logger.debug(f"\t {test_nbh.word} ALREADY EXISTS\n\n")
+        logger.debug(f"\t {test_nbh.word} ALREADY EXISTS\n")
         is_child = True
     return (is_new,is_child)
 
@@ -183,6 +191,7 @@ def nbhG(param:complex, max_depth:int)->dict:
             #in the case that all the computed neighbors are not valid
             #save the current neighbor in a list 
             if not is_child_Star and not is_child_PM and not is_child_MP:
+                logger.debug("No new child neighbors")
                 nbh_without_child.append(current_nbh)
             
         #if there are neighbors without children
@@ -190,6 +199,7 @@ def nbhG(param:complex, max_depth:int)->dict:
         #and update the lookup dictionary
         if len(nbh_without_child)!=0:
             for elem in nbh_without_child:
+                logger.debug("...removing from valid neighbors the ones with no children")
                 valid_neighbors.remove(elem)
                 valid_neighbors = {nbh.filter_children(elem.word) for nbh in valid_neighbors}
                 del nbh_lookup[elem._hash]
@@ -203,229 +213,7 @@ def nbhG(param:complex, max_depth:int)->dict:
         
     #clean up neighbors with no children
     #NOTE: it might not find them all.
+    logger.debug("...another clean up of neighbors without children")
     valid_neighbors = {nbh for nbh in valid_neighbors if len(nbh.children)>0}
     
     return valid_neighbors, nbh_lookup
-
-# from nested_lookup import nested_delete
-# def nbhG_old(param,maxDepth):
-#     """
-#     finds the edges in the neighbor graph for
-#     the parameter z.
-
-#     Parameters
-#     ----------
-#     param: complex number
-#         the parameter to check
-    
-#     Attributes
-#     ----------
-#     maxDepth: int
-#         maximum depth
-    
-#     Returns
-#     -------
-#     edges: dict
-#         the edges of the graph
-#     """
-#     z=Symbol('z')
-#     phiPM = Function('phiPM')(z)
-#     phiMP = Function('phiMP')(z)
-#     phiStar = Function('phiStar')(z)
-    
-#     phiPM = (z-2)*param**(-1)# corresponds to fp^(-1) g fm
-#     phiMP = (z+2)*param**(-1)# corresponds to fm^(-1) g fp
-#     phiStar = z*param**(-1)# corresponds to fpm^(-1) g fpm
-    
-#     # phiPM = (z-2*param)
-#     # phiMP = (z+2*param)
-#     # phiStar = (z)
-
-    
-#     err = 1e-29
-#     prec = 30
-#     #initialize the dictionary of vertices in the graph
-#     vertices = {
-#         'id':0.,
-#         'h1':phiMP.evalf(prec,subs={z:0}) 
-#         # 'h1':phiPM.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
-#     }
-#     #initialize the dictionary of new vertices at the current stage
-#     newVertices = {
-#         'h1':phiMP.evalf(prec,subs={z:0}) 
-#         # 'h1':phiPM.evalf(prec,subs={z:0}) #thanks to symmetry we can avoid this
-#     }
-#     #initialize the dictionary of edges between the vertices
-#     edges = {
-#         'id':{
-#               'h1':{'label':'- +','weight':0.25}
-#             # 'h1':{'label':'+ -','weight':0.75}#thanks to symmetry we can avoid this
-#             }
-#     }
-    
-    
-#     depth = 0
-#     neighborIndex = 1 #the label of the last vertex created
-    
-#     criticalRad = (2*(1-Abs(param))**(-1)).evalf(prec) #the escape radius
-#     while len(newVertices) and depth<maxDepth:
-#         newChildren = {}
-#         verticesWithNoChild = {}
-        
-#         #boolean values to check the existence of children of a vertex
-#         noChildPM = False
-#         noChildStar = False
-#         noChildMP = False
-        
-#         logger.debug(f"{depth=} {newVertices=}")
-#         # ----------------------------- for each vertex in newVertices --------------------------------------------
-#         for keyNb,valNb in newVertices.items():
-#             logger.debug(f"{keyNb=} and {valNb=}")
-            
-#             #compute the possible new neighbors
-#             hStar = phiStar.evalf(prec,subs={z:valNb})
-#             hPM = phiPM.evalf(prec,subs={z:valNb})
-#             hMP = phiMP.evalf(prec,subs={z:valNb})
-            
-#             logger.debug(f"{hStar=}")
-#             logger.debug(f"{hPM=}")
-#             logger.debug(f"{hMP=}")
-
-#             #check if the computed neighbors exist already in the list of vertices
-#             matchStar = [key for key, value in vertices.items() if Abs(value-hStar).evalf(prec)<=err]
-#             matchPM = [key for key, value in vertices.items() if Abs(value-hPM).evalf(prec)<=err]
-#             matchMP = [key for key, value in vertices.items() if Abs(value-hMP).evalf(prec)<=err]
-
-#             # check_vertices(edges,vertices,newChildren,keyNb,hStar,matchStar,neighborIndex,noChildStar,' * ',criticalRad,err,prec)
-#             if len(matchStar)==0: # phiStar is POSSIBLY a new vertex
-#                 logger.debug("phiStar is POSSIBLY a new vertex")
-#                 if Abs(hStar).evalf(prec)<=criticalRad*(Abs(param)**(depth+2)) or Abs(Abs(hStar)-criticalRad*(Abs(param)**(depth+2))).evalf(prec)<=err:
-#                     logger.debug("phiStar IS a child vertex")
-#                     noChildStar = False # phiStar IS a child vertex
-#                     neighborIndex+=1
-#                     newChildren.update({f"h{neighborIndex}": hStar})
-#                     vertices.update({f"h{neighborIndex}": hStar})
-
-#                     #if the current vertex has already some connections
-#                     #update with a new one
-#                     #otherwise create a new one
-#                     if keyNb in edges: 
-#                         logger.debug(f"{keyNb=} is in edges, adding edge h{neighborIndex} with label *")
-#                         edges[keyNb].update({f"h{neighborIndex}":{'label':' * ', 'weight': 0.5}})                        
-#                     else:
-#                         logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge h{neighborIndex} with label *")
-#                         edges.update({keyNb:{f"h{neighborIndex}":{'label':' * ', 'weight': 0.5}}})
-#                 else: # phiStar is NOT a VALID neighbor 
-#                     logger.debug("phiStar is NOT a new vertex")
-#                     noChildStar = True
-
-#             else: # phiStar ALREADY EXISTS
-#                 logger.debug("phiStar ALREADY EXISTS")
-#                 noChildStar = False 
-#                 if keyNb in edges:
-#                     logger.debug(f"{keyNb=} is in edges, adding edge {matchStar[0]} with label *")
-#                     edges[keyNb].update({matchStar[0]:{'label':' * ', 'weight': 0.5}})
-#                 else:
-#                     logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge {matchStar[0]} with label *")
-#                     edges.update({keyNb:{matchStar[0]:{'label':' * ', 'weight': 0.5}}})
-
-#             # check_vertices(edges,vertices,newChildren,keyNb,hPM,matchPM,neighborIndex,noChildPM,' + ',criticalRad,err,prec)
-#             if len(matchPM)==0: # phiPM is POSSIBLY a new vertex
-#                 logger.debug("phiPM is POSSIBLY a new vertex")
-#                 if Abs(hPM).evalf(prec)<=criticalRad*(Abs(param)**(depth+2)) or Abs(Abs(hPM)-criticalRad*(Abs(param)**(depth+2))).evalf(prec)<=err:
-#                     logger.debug("phiPM IS a child vertex")
-#                     noChildPM = False # phiPM IS a child vertex
-#                     neighborIndex += 1
-
-#                     newChildren.update({f"h{neighborIndex}": hPM})
-#                     vertices.update({f"h{neighborIndex}": hPM})
-
-#                     #if the current vertex has already some connections
-#                     #update with a new one
-#                     #otherwise create a new one
-#                     if keyNb in edges:
-#                         logger.debug(f"{keyNb=} is in edges, adding edge h{neighborIndex} with label + -")
-#                         edges[keyNb].update({f"h{neighborIndex}":{'label':'+ -', 'weight': 0.75}})
-#                     else:
-#                         logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge h{neighborIndex} with label + -")
-#                         edges.update({keyNb:{f"h{neighborIndex}":{'label':'+ -', 'weight': 0.75}}})
-#                 else: # phiPM is NOT a VALID neighbor 
-#                     noChildPM = True
-
-#             else: # phiPM ALREADY EXISTS
-#                 logger.debug("phiPM ALREADY EXISTS")
-#                 noChildStar = False
-#                 if keyNb in edges:
-#                     logger.debug(f"{keyNb=} is in edges, adding edge {matchPM[0]} with label + -")
-#                     edges[keyNb].update({matchPM[0]:{'label':'+ -', 'weight': 0.75}})
-#                 else:
-#                     logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge {matchPM[0]} with label + -")
-#                     edges.update({keyNb:{matchPM[0]:{'label':'+ -', 'weight': 0.75}}})
-
-#             # check_vertices(edges,vertices,newChildren,keyNb,hMP,matchMP,neighborIndex,noChildMP,' - ',criticalRad,err,prec)
-#             if len(matchMP)==0: # phiMP is POSSIBLY a new vertex
-#                 logger.debug("phiMP is POSSIBLY a new vertex")
-#                 if Abs(hMP).evalf(prec)<=criticalRad*(Abs(param)**(depth+2)) or Abs(Abs(hMP)-criticalRad*(Abs(param)**(depth+2))).evalf(prec)<=err:
-#                     logger.debug("phiMP IS a child vertex")
-#                     noChildMP = False # phiMP IS a child vertex
-#                     neighborIndex += 1
-
-#                     newChildren.update({f"h{neighborIndex}": hMP})
-#                     vertices.update({f"h{neighborIndex}": hMP})
-
-#                     #if the current vertex has already some connections
-#                     #update with a new one
-#                     #otherwise create a new one
-#                     if keyNb in edges:
-#                         logger.debug(f"{keyNb=} is in edges, adding edge h{neighborIndex} with label - +")
-#                         edges[keyNb].update({f"h{neighborIndex}":{'label':'- +', 'weight': 0.25}})
-#                     else:
-#                         logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge h{neighborIndex} with label - +")
-#                         edges.update({keyNb:{f"h{neighborIndex}":{'label':'- +', 'weight': 0.25}}})
-#                 else: # phiMP is NOT a VALID neighbor 
-#                     noChildMP = True
-
-#             else: # phiMP ALREADY EXISTS
-#                 logger.debug("phiMP ALREADY EXISTS")
-#                 noChildStar = False
-#                 if keyNb in edges:
-#                     logger.debug(f"{keyNb=} is in edges, adding edge {matchMP[0]} with label - +")
-#                     edges[keyNb].update({matchMP[0]:{'label':'- +', 'weight': 0.25}})
-#                 else:
-#                     logger.debug(f"{keyNb=} is NOT in edges, adding a NEW edge {matchMP[0]} with label - +")
-#                     edges.update({keyNb:{matchMP[0]:{'label':'- +', 'weight': 0.25}}})
-
-#             #in the case that all the computed neighbors are not valid
-#             #save the current neighbor
-#             if noChildStar and noChildPM and noChildMP:
-#                 logger.debug(f"there are no new vertices. saving {keyNb=} in verticesWithNoChild")
-#                 verticesWithNoChild.update({keyNb: valNb})
-#         #------------------------------------- end for loop ----------------------------------------------------
-        
-#         #if there are neighbors without children
-#         #remove them from the list of vertices
-#         #and get rid of any edge connected to them 
-#         if len(verticesWithNoChild)!=0:
-#             vertices = {k:v for (k,v) in vertices.items() if k not in verticesWithNoChild }
-#             for key in verticesWithNoChild:
-#                 edges = nested_delete(edges, key)
-        
-#         #update the list of new vertices with the newly found vertices
-#         newVertices = newChildren
-#         depth += 1
-
-#     #remove the vertices that have no children
-#     #first find those with out-degree = 0 and remove them
-#     #i.e. those keys in `vertices`` that are not first-level key in `edges` 
-#     #then remove from `edges` the remaining first-level keys without properties
-#     #and all of its other instances
-#     nullOutDegre={k for k in vertices.keys() if k not in edges.keys()}
-#     for k in nullOutDegre:
-#         edges = nested_delete(edges,k)
-
-#     for k,v in edges.items():
-#         if len(v)==0:
-#             edges = nested_delete(edges,k)
-
-#     return edges
-
