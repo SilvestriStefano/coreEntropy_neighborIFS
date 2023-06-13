@@ -1,10 +1,12 @@
+from pathlib import Path
 from src.neighbor import Neighbor
 from sympy import Symbol, Function, Abs
 
 import logging
 import logging.config
 
-logging.config.fileConfig('./src/logging.conf')
+log_conf_path = Path('.') / 'logging.conf'
+logging.config.fileConfig(log_conf_path)
 
 # create logger
 logger = logging.getLogger("default")

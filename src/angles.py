@@ -1,15 +1,17 @@
 """
 Module that contains dynamics properties of a rational angle
 """
-import numpy as np
+from pathlib import Path
 
+import numpy as np
 from fractions import Fraction as Frac
 from sympy import *
 
 import logging
 import logging.config
 
-logging.config.fileConfig('./src/logging.conf')
+log_conf_path = Path('.') / 'logging.conf'
+logging.config.fileConfig(log_conf_path)
 
 # create logger
 logger = logging.getLogger("default")
