@@ -75,7 +75,7 @@ $(mandel_thurston) pip install -e .
 
 ## Run tests
 ```shell
-$(mandel_thurston) pytest -vv --cov=src tests/
+$(mandel_thurston) pytest -vv --cov=src
 ``` 
 - the flag `-vv` is for verbose
 - the flag `--cov` is for the coverage report

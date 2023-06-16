@@ -4,6 +4,18 @@ Module that contains functions
 from pathlib import Path
 from src.utils import nbhG
 
+from src import angles as ang
+from fractions import Fraction as Frac
+from numpy import array as nparray
+from numpy import ones as npones
+from numpy import where as npwhere
+from numpy import append as npappend
+from numpy import float64
+from sympy import Abs
+
+from scipy.sparse import csr_matrix
+from scipy.sparse.linalg import eigs
+
 import logging
 import logging.config
 
@@ -15,6 +27,46 @@ logger = logging.getLogger("default")
 
 
 def create_nbh_graph(param:complex, max_depth:int)->dict:
+    """
+    Creates the Neighbor Graph following NetworkX's graph data structure:
+    a 'dictionary of dictionaries of dictionaries'. 
+    
+    For param values with absolute value less than 0.5, it returns an empty dictionary.
+    For param values with absolute value bigger than 0.5 but whose associated
+    attractor is a Cantor set, it might return a non-empty dictionary. However there should
+    not be any loop.
+    For param values whose associate attractor is connected, there should be at least one loop.
+
+    Note
+    ----
+    It might contain non valid Neighbors, i.e. vertices with no children.
+
+    Parameters
+    ----------
+    param: complex
+      A complex number with absolute value less than 1.
+    max_depth: int
+      How long should the algorithm continue before exiting.
+    
+    Returns
+    -------
+    dict
+      The Neighbor Graph
+
+    Example
+    -------
+    >>> G = create_nbh_graph(0.5+0.*1j,6)
+    >>> print(G)
+    {'id': {'h+': 'mp'}, 'h+':{'h+': 'pm'}}
+    """
+    
+    if type(param) is not complex:
+        raise ValueError("The parameter should be a complex number")
+    if type(max_depth) is not int:
+        raise ValueError("The maximum depth should be an integer value")
+    
+    if Abs(param)<0.5 or Abs(param-1)<1e-13 or Abs(param)>1:
+        return {}
 
     valid_nbh, nbh_lookup = nbhG(param,max_depth)
     nbh_graph = {}
@@ -28,17 +80,23 @@ def create_nbh_graph(param:complex, max_depth:int)->dict:
     return nbh_graph
 
 
-from src import angles as ang
-from fractions import Fraction as Frac
-from numpy import array as nparray
-from numpy import ones as npones
-from numpy import where as npwhere
-from numpy import append as npappend
-
-from scipy.sparse import csr_matrix
-from scipy.sparse.linalg import eigs
-
-def core_entropy(*,num, den):
+def core_entropy(*,num:int, den:int)->float64:
+    """
+    Calculates the core entropy for a given rational angle. 
+    
+    Parameters
+    ----------
+    num: int
+      The numerator of the rational angle.
+    den: int
+      The denominator of the rational angle.
+    
+    Returns
+    -------
+    numpy.float64
+      The core entropy
+    """
+    
     if type(num) is not int or type(den) is not int:
         raise ValueError("Arguments should be integers or strings of integer")
     if type(int(num)) is not int or type(int(den)) is not int:
