@@ -1,6 +1,7 @@
 """
 Module that contains functions
 """
+from typing import Union
 from pathlib import Path
 from src.utils import nbhG
 
@@ -11,7 +12,6 @@ from numpy import ones as npones
 from numpy import where as npwhere
 from numpy import append as npappend
 from numpy import float64
-from sympy import Abs
 
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigs
@@ -26,7 +26,7 @@ logging.config.fileConfig(log_conf_path)
 logger = logging.getLogger("default")
 
 
-def create_nbh_graph(param:complex, max_depth:int)->dict:
+def create_nbh_graph(param:Union[int,float,complex], max_depth:int)->dict:
     """
     Creates the Neighbor Graph following NetworkX's graph data structure:
     a 'dictionary of dictionaries of dictionaries'. 
@@ -43,8 +43,8 @@ def create_nbh_graph(param:complex, max_depth:int)->dict:
 
     Parameters
     ----------
-    param: complex
-      A complex number with absolute value less than 1.
+    param: int, float, complex
+      A number with absolute value less than 1.
     max_depth: int
       How long should the algorithm continue before exiting.
     
@@ -59,13 +59,15 @@ def create_nbh_graph(param:complex, max_depth:int)->dict:
     >>> print(G)
     {'id': {'h+': 'mp'}, 'h+':{'h+': 'pm'}}
     """
-    
-    if type(param) is not complex:
+    try:
+        param = complex(param)
+    except ValueError:
         raise ValueError("The parameter should be a complex number")
+    
     if type(max_depth) is not int:
         raise ValueError("The maximum depth should be an integer value")
     
-    if Abs(param)<0.5 or Abs(param-1)<1e-13 or Abs(param)>1:
+    if abs(param)<0.5 or abs(abs(param)-1.0)<1e-13 or abs(param)>1:
         return {}
 
     valid_nbh, nbh_lookup = nbhG(param,max_depth)

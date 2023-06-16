@@ -112,11 +112,10 @@ def test_create_nbh_graph(test_param,test_depth,expected):
                   [("string","string"),
                    ("32","1"),
                    (32,1.0),
-                   (0.5,1),
                    (3+9j,0.5),
                    (1+0j,1+0j)],
-                  ids=["str str","char char","int float","float int","complex float","complex complex"])
-def test_create_nbh_graph(test_param,test_depth):
+                  ids=["str str","char char","int float","complex float","complex complex"])
+def test_create_nbh_graph_ValueError(test_param,test_depth):
     """
     check that the create_nbh_graph raises ValueError for not allowed input
     """

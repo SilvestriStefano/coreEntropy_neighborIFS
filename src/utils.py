@@ -11,26 +11,26 @@ logging.config.fileConfig(log_conf_path)
 # create logger
 logger = logging.getLogger("default")
 
-def is_child_neighbor(test_nbh:Neighbor, valid_nbhs:set, param:complex):
+def is_child_neighbor(test_nbh:Neighbor, valid_nbhs:set, param:complex)->tuple:
     """
-    Checks whether the neighbor is a child neighbor.
+    Checks whether the Neighbor is a child Neighbor.
     
     Parameters
     ----------
     test_nbh: Neighbor
         the Neighbor to be tested
     valid_nbhs: set
-        the set of valid neighbors
+        the set of valid Neighbors
     param: complex
         the parameter
     
-    Returns
-    -------
+    Return
+    ------
     tuple of bool
     (is_new, is_child)
-        (True, True) test_nbh is a new child neighbor
-        (True, False) test_nbh is not a neighbor
-        (False, True) test_nbh matches a neighbor in the set
+        (True, True) test_nbh is a new child Neighbor
+        (True, False) test_nbh is not a Neighbor
+        (False, True) test_nbh matches a Neighbor in the set
     """
     
     err = 1e-29
@@ -55,7 +55,7 @@ def is_child_neighbor(test_nbh:Neighbor, valid_nbhs:set, param:complex):
         is_child = True
     return (is_new,is_child)
 
-def add_new_child(child_nbh:Neighbor, parent_nbh:Neighbor, edge:str, children:set, valid_nbhs:set, nbh_lookup:dict):
+def add_new_child(child_nbh:Neighbor, parent_nbh:Neighbor, edge:str, children:set, valid_nbhs:set, nbh_lookup:dict)->None:
     """Updates the set of child neighbors, the neighbor set and the dictionary of valid neighbors.
     
     Parameters
@@ -67,18 +67,23 @@ def add_new_child(child_nbh:Neighbor, parent_nbh:Neighbor, edge:str, children:se
     edge: str
         the function used to obtain child_nbh from parent_nbh
     valid_nbhs: set
-        the set of valid neighbors
-    children: list
-        the set of valid neighbors
+        the set of valid Neighbors
+    children: set
+        The set of currently valid Neighbor children
     nbh_lookup: int
-        the dictionary of current neighbors
+        The dictionary of the valid Neighbors. 
+        It uses the Neighbor hash as the key and the Neighbor word as the value
+    
+    Return
+    ------
+    None
     """
 
     children.add(child_nbh)
     valid_nbhs.add(child_nbh)
     update_lookup(child_nbh,parent_nbh,edge,valid_nbhs,nbh_lookup,True)
 
-def update_lookup(child_nbh:Neighbor, parent_nbh:Neighbor, edge:str, valid_nbhs:set, nbh_lookup:dict, is_new:bool):
+def update_lookup(child_nbh:Neighbor, parent_nbh:Neighbor, edge:str, valid_nbhs:set, nbh_lookup:dict, is_new:bool)->None:
     """Updates the dictionary of valid neighbors and sets the relation between child and parent neighbor.
     
     Parameters
@@ -95,6 +100,10 @@ def update_lookup(child_nbh:Neighbor, parent_nbh:Neighbor, edge:str, valid_nbhs:
         the dictionary of current neighbors
     is_new: bool
         whether child_nbh is a new valid neighbor
+    
+    Return
+    ------
+    None
     """ 
     if is_new:
         child_nbh_word = child_nbh.word
@@ -113,6 +122,29 @@ def check_neighbor(test_nbh:Neighbor,
                    children:set,
                    nbh_lookup:dict,
                    param:complex)->bool:
+    """
+    Paramteres
+    ----------
+    test_nbh: Neighbor
+        The Neighbor to be checked
+    curr_nbh: Neighbor
+        The current Neighbor
+    edge: str
+        The string representation of the function that generates `test_nbh` from `curr_nbh`
+    valid_nbh: set
+        The set of currently valid Neighbors
+    children: set
+        The set of currently valid Neighbor children
+    nbh_lookup: dict
+        The dictionary of the valid Neighbors. 
+        It uses the Neighbor hash as the key and the Neighbor word as the value
+    param: complex
+        The comple parameter that is being used.
+
+    Return
+    ------
+    is_child : bool
+    """
     is_new, is_child = is_child_neighbor(test_nbh,valid_nbhs,param)
     if is_new and is_child:
         add_new_child(test_nbh,curr_nbh,edge,children,valid_nbhs,nbh_lookup) 
@@ -120,12 +152,12 @@ def check_neighbor(test_nbh:Neighbor,
         update_lookup(test_nbh,curr_nbh,edge,valid_nbhs,nbh_lookup,False)
     return is_child
 
-def nbhG(param:complex, max_depth:int)->dict:
+def nbhG(param:complex, max_depth:int)->tuple:
     """
-    Finds the edges in the neighbor graph for
+    Finds the edges in the Neighbor graph for
     the parameter z.
 
-    Note that there might be neighbors that are not valid.
+    Note that there might be Neighbors that are not valid.
 
     Parameters
     ----------
@@ -134,12 +166,12 @@ def nbhG(param:complex, max_depth:int)->dict:
     maxDepth: int
         maximum depth
     
-    Returns
-    -------
+    Return
+    ------
     valid_neighbors: set
         the set of valid Neighbors in the graph
     nbh_lookup: dict
-        the dictionary of the valid neighbors. 
+        the dictionary of the valid Neighbors. 
         It uses the Neighbor hash as the key and the Neighbor word as the value
     """
 
@@ -154,16 +186,16 @@ def nbhG(param:complex, max_depth:int)->dict:
         
     prec = 30
     
-    #initialize the set of neighbors in the graph
+    #initialize the set of Neighbors in the graph
     valid_neighbors = set([
         Neighbor('.',0.+0.j,children=['+'],edges=['mp']),
         Neighbor('+',phi_MP.evalf(prec,subs={z:0}),parents=['.'])
     ])
     
-    #initialize the dictionary of current neighbors 
+    #initialize the dictionary of current Neighbors 
     nbh_lookup = {elem._hash:elem.word for elem in valid_neighbors}
     
-    #initialize the set of new neighbors at the current stage
+    #initialize the set of new Neighbors at the current stage
     new_neighbors = set([Neighbor('+',phi_MP.evalf(prec,subs={z:0}),parents=['.'])])
     
     depth = 1
@@ -172,7 +204,7 @@ def nbhG(param:complex, max_depth:int)->dict:
         new_children = set()
         nbh_without_child = []
         
-        #boolean values to check the existence of vertex's children
+        #boolean values to check the existence of Neighbor's children
         is_child_Star = False
         is_child_PM = False
         is_child_MP = False
@@ -181,7 +213,7 @@ def nbhG(param:complex, max_depth:int)->dict:
             current_word = current_nbh.word
             current_val = current_nbh.val
             
-            #compute the possible new neighbors
+            #compute the possible new Neighbors
             h_Star = Neighbor(current_word+'0',phi_Star.evalf(prec,subs={z:current_val}),parents=[current_word])
             h_PM = Neighbor(current_word+'-',phi_PM.evalf(prec,subs={z:current_val}),parents=[current_word])
             h_MP = Neighbor(current_word+'+',phi_MP.evalf(prec,subs={z:current_val}),parents=[current_word])
@@ -191,31 +223,31 @@ def nbhG(param:complex, max_depth:int)->dict:
             is_child_MP = check_neighbor(h_MP,current_nbh,'mp',valid_neighbors,new_children,nbh_lookup,param)
                 
             #in the case that all the computed neighbors are not valid
-            #save the current neighbor in a list 
+            #save the current Neighbor in a list 
             if not is_child_Star and not is_child_PM and not is_child_MP:
-                logger.debug("No new child neighbors")
+                logger.debug("No new child Neighbors")
                 nbh_without_child.append(current_nbh)
             
-        #if there are neighbors without children
-        #remove them from the set of valid neighbors
+        #if there are Neighbors without children
+        #remove them from the set of valid Neighbors
         #and update the lookup dictionary
         if len(nbh_without_child)!=0:
             for elem in nbh_without_child:
-                logger.debug("...removing from valid neighbors the ones with no children")
+                logger.debug("...removing from valid Neighbors the ones with no children")
                 valid_neighbors.remove(elem)
                 valid_neighbors = {nbh.filter_children(elem.word) for nbh in valid_neighbors}
                 del nbh_lookup[elem._hash]
         
                 
-        #update the list of new vertices with the newly found vertices
+        #update the list of new vertices with the newly found Neighbors
         new_neighbors.clear()
         new_neighbors.update(new_children)
         new_children.clear()
         depth += 1
         
-    #clean up neighbors with no children
+    #clean up Neighbors with no children
     #NOTE: it might not find them all.
-    logger.debug("...another clean up of neighbors without children")
+    logger.debug("...another clean up of Neighbors without children")
     valid_neighbors = {nbh for nbh in valid_neighbors if len(nbh.children)>0}
     
     return valid_neighbors, nbh_lookup

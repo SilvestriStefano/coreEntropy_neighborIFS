@@ -18,7 +18,7 @@ logger = logging.getLogger("default")
 
 
 class Angle:
-    def __init__(self,num,den):
+    def __init__(self,num:int,den:int):
         """       
         Parameters
         ----------
@@ -39,13 +39,13 @@ class Angle:
     def __str__(self):
         return f"The angle is {self.frac}"
 
-    def orbit(self):
+    def orbit(self)->list:
         """
         calculates the orbit of the angle num/den under the doubling map.
 
-        Returns
-        -------
-        self.orbit_list: list
+        Return
+        ------
+        orbit_list: list
             It is a list of Frac elements.
         
         """
@@ -54,16 +54,16 @@ class Angle:
             self.orbit_list.append(self.orbit_list[-1]*Frac(2,1)%1) #double it modulo 1
         return self.orbit_list
     
-    def period(self):
+    def period(self)->tuple:
         """
         calculates the period of the angle num/den under the doubling map and 
         the index in the orbit list of where it starts.
 
-        Return
-        ------
+        Returns
+        -------
         tuple of int
-            The first entry of the tuple is `self.per_len`, the length of the period.
-            The second entry of the tuple is `self.start_index_per`, the index of where the periodic part of the orbit starts.
+            The first entry of the tuple is `per_len`, the length of the period.
+            The second entry of the tuple is `start_index_per`, the index of where the periodic part of the orbit starts.
         
         """
         try: 
@@ -77,13 +77,13 @@ class Angle:
         return (self.per_len,self.start_index_per)
 
 
-    def ks_from_angle(self):
+    def ks_from_angle(self)->str:
         """
         finds the kneading sequence associated to the angle num/den.
         
         Return
         ------
-        self.ks: string
+        ks: string
             The kneading sequence.
         
         """
@@ -118,7 +118,7 @@ class Angle:
         return self.ks
 
     
-    def attr_itin_from_ks(self):
+    def attr_itin_from_ks(self)->str:
         """
         finds the itinerary of 0 in the attractor given the kneading sequence 
         associated to the angle num/den.
@@ -128,7 +128,7 @@ class Angle:
 
         Return
         ------
-        self.itin: string
+        itin: string
             The itinerary of 0 in the attractor.
         
         """
@@ -193,13 +193,13 @@ class Angle:
         return self.itin
 
 
-    def period_length_itin(self):
+    def period_length_itin(self)->int:
         """
         finds the period length of the itinerary of 0 in the attractor.
         
         Return
         ------
-        self.itin_per_len: int
+        itin_per_len: int
             The length of the periodic part of the itinerary.
         """
         try:
@@ -212,20 +212,20 @@ class Angle:
         return self.itin_per_len
 
 
-    def itin_to_rat(self, *, pow_symb = '**'):
+    def itin_to_rat(self, *, pow_symb:str = '**')->str:
         """
         finds the numerator of the rational function associated to the itinerary of 0.
 
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         pow_symb: str
-            the symbol for exponentiation. Default is **. Use ^ if you need to use 
+            the symbol for exponentiation. Default is '**'. Use '^' if you need to use 
             the result in Mathematica.
 
         Return
         ------
-        self.rat_func: string
+        rat_func: string
             The numerator (polynomial) of the rational function which vanishes at lambda.
 
         """
@@ -256,14 +256,14 @@ class Angle:
                 self.rat_func += sign+'x'+pow_symb+str(index)
         return self.rat_func
 
-    def assoc_lambda(self):
+    def assoc_lambda(self)->complex:
         """
         find the roots of the associated rational function inside the disc of radius 2^(-0.5)+10^(-15).
         If none is found it returns 0.+0.j.
         
         Return
         ------
-        self.lam: complex
+        lam: complex
             The complex number *associated* to the Misiurewicz parameter.
         """
         try:
