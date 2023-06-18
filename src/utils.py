@@ -340,7 +340,7 @@ def ps(pt:np.complex128, seqs:np.ndarray)->np.ndarray:
     return np.asarray(vals)
 
 @njit
-def compute_green_MM0(pt_list:np.ndarray, level:int)->np.float128:
+def compute_green_MM0(pt_list:np.ndarray, level:int)->np.float64:
     r"""compute the minimum of the absolute vales from pt_list. 
     Take the log and normalize by the level.
     .. math:: \frac{1}{n} \log(\min (\left\vert \sum_{j=0}^{j=n-1}\epsilon_jx^j \right\vert))
@@ -358,7 +358,7 @@ def compute_green_MM0(pt_list:np.ndarray, level:int)->np.float128:
     
     Return
     ------
-    numpy.float128
+    numpy.float64
         Value of the green function for the list of points.
     """
     vals = np.log(np.min(np.abs(pt_list)))/level
