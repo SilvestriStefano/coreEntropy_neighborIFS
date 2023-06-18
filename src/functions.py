@@ -1,8 +1,8 @@
 """
 Module that contains functions
 """
+from os import path
 from typing import Union
-from pathlib import Path
 from src.utils import nbhG
 
 from src import angles as ang
@@ -19,14 +19,15 @@ from scipy.sparse.linalg import eigs
 import logging
 import logging.config
 
-log_conf_path = Path('.') / 'logging.conf'
+src_dir, _ = path.split(path.abspath(__file__))
+log_conf_path = path.join(path.dirname(src_dir),'log/logging.conf')
 logging.config.fileConfig(log_conf_path)
 
 # create logger
 logger = logging.getLogger("default")
 
 
-def create_nbh_graph(param:Union[int,float,complex], max_depth:int)->dict:
+def neighbor_graph(param:Union[int,float,complex], max_depth:int)->dict:
     """
     Creates the Neighbor Graph following NetworkX's graph data structure:
     a 'dictionary of dictionaries of dictionaries'. 
@@ -159,7 +160,7 @@ def core_entropy(*,num:int, den:int)->float64:
             try:
                 index = npwhere(tuples==target)[0][0]
             except IndexError:
-                logger.error(f"there is no tuple {target}")
+                logger.error(f"{theta}; there is no tuple {target}")
             else:
                 logger.debug(f"the target is {target} which has index {index}\n")
                 indices = npappend(indices,index)
@@ -177,7 +178,7 @@ def core_entropy(*,num:int, den:int)->float64:
             try: 
                 index_one = npwhere(tuples==target_one)[0][0]
             except IndexError:
-                logger.error(f"there is no tuple {target_one}")
+                logger.error(f"{theta}; there is no tuple {target_one}")
             else:
                 logger.debug(f"the target_one is {target_one} which has index {index_one}")
                 indices = npappend(indices,index_one)
@@ -185,7 +186,7 @@ def core_entropy(*,num:int, den:int)->float64:
             try:
                 index_two = npwhere(tuples==target_two)[0][0]
             except IndexError:
-                logger.error(f"there is no tuple {target_two}")
+                logger.error(f"{theta}; there is no tuple {target_two}")
             else:
                 logger.debug(f"the target_two is {target_two} which has index {index_two}\n")
                 indices = npappend(indices,index_two)

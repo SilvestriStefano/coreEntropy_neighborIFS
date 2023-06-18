@@ -1,11 +1,17 @@
-from pathlib import Path
+from os import path
+from typing import Union
+from itertools import product
 from src.neighbor import Neighbor
 from sympy import Symbol, Function, Abs
+
+import numpy as np
+from numba import njit, prange
 
 import logging
 import logging.config
 
-log_conf_path = Path('.') / 'logging.conf'
+src_dir, _ = path.split(path.abspath(__file__))
+log_conf_path = path.join(path.dirname(src_dir),'log/logging.conf')
 logging.config.fileConfig(log_conf_path)
 
 # create logger
@@ -38,8 +44,6 @@ def is_child_neighbor(test_nbh:Neighbor, valid_nbhs:set, param:complex)->tuple:
     
     critical_rad = (2*(1-Abs(param))**(-1)).evalf(prec) #the escape radius
     is_new = test_nbh not in valid_nbhs
-    for elem in valid_nbhs:
-        diff = Abs(test_nbh.val-elem.val)
     
     if is_new: # test_nbh is POSSIBLY a new vertex
         logger.debug(f"\t {test_nbh.word} is POSSIBLY a new neighbor")
@@ -251,3 +255,111 @@ def nbhG(param:complex, max_depth:int)->tuple:
     valid_neighbors = {nbh for nbh in valid_neighbors if len(nbh.children)>0}
     
     return valid_neighbors, nbh_lookup
+
+def allsequences(n:int, terms:list=[1,-1])->np.ndarray:
+    """
+    Generates from the elements in `terms` the list of all sequences 
+    of length `n` starting with `terms[0]`.
+    If `terms=[1,0,-1]` it excludes the sequence `[1,0,0,0,..]`
+
+    Parameters
+    ----------
+    n: int
+        Length of sequences
+    terms: list
+        Optional. Elements with which to construct the sequences.
+        Default is `[1,-1]`.
+
+    Return
+    ------
+    numpy.array
+        List of sequences.
+
+    Example
+    -------
+    >>> seq = allsequences(3)
+    >>> print(seq)
+    array([[ 1, 1, 1],
+           [ 1, 1,-1],
+           [ 1,-1, 1],
+           [ 1,-1,-1]])
+    """
+    lst = []
+    for seq in product(terms, repeat=n):
+        if np.all(np.equal(seq[1:],np.zeros(n-1))):
+            continue
+        if seq[0]==terms[0]: 
+            lst.append(seq)
+        else:
+            break
+    return np.asarray(lst)
+
+@njit
+def poly_eval(x:Union[int,float,complex],c:list)->Union[int,float,complex]:
+    r"""Evaluate a polynomial at points x.
+    If `c` is of length `n + 1`, this function returns the value
+    .. math:: p(x) = c_0 + c_1 * x + ... + c_n * x^n
+    
+    Parameters
+    ----------
+    x: int, float, complex
+        Value at which to evaluate the polynomial
+    c: list
+        List of coefficients of the polynomial
+    
+    Return
+    ------
+    int, float, complex
+        Evaluation of the polynomial. The type depends on both `x` and `c`.
+    """
+    c0 = c[-1] + x*0
+    for i in prange(2, len(c) + 1):
+        c0 = c[-i] + c0*x
+    return c0
+
+@njit
+def ps(pt:np.complex128, seqs:np.ndarray)->np.ndarray:
+    """Evaluate at the given point the polynomial with coefficients 
+    from the list of sequences.
+
+    Parameters
+    ----------
+    pt: numpy.complex128
+        Point at which to evaluate the power series
+    seqs: numpy.ndarray
+        Sequences of coefficients defining the polynomial
+    
+    Return
+    ------
+    numpy.ndarray
+        Sequence of values
+    """
+    vals = []
+    for i in prange(len(seqs)):
+        vals.append(poly_eval(pt,seqs[i]))
+    return np.asarray(vals)
+
+@njit
+def compute_green_MM0(pt_list:np.ndarray, level:int)->np.float128:
+    r"""compute the minimum of the absolute vales from pt_list. 
+    Take the log and normalize by the level.
+    .. math:: \frac{1}{n} \log(\min (\left\vert \sum_{j=0}^{j=n-1}\epsilon_jx^j \right\vert))
+    where 
+    ..math:: \epsilon_j\in\{-1,1\}
+    or 
+    ..math:: \epsilon_j\in\{-1,0,1\}
+    
+    Parameters
+    ----------
+    pt_list: numpy.ndarray
+        List of points
+    level: int
+        Level of approximation of the Green Function
+    
+    Return
+    ------
+    numpy.float128
+        Value of the green function for the list of points.
+    """
+    vals = np.log(np.min(np.abs(pt_list)))/level
+    return vals
