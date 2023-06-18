@@ -46,9 +46,9 @@ More to come...
     ```
 
 ### with conda
-1. Create a virtual environment
+1. Create a virtual environment and install dependencies
     ```shell
-    $ conda env create -f mandel_thurston.yml
+    $ conda env create -f mandel_thurston_env.yml
     ```
 2. Activate it
     ```shell
