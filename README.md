@@ -22,6 +22,17 @@ More to come...
 - [Parameter Spaces Using the Green Function](/scripts/Parameter%20Spaces%20Using%20The%20Green%20Function.ipynb)
 - [The Core Entropy plot](/scripts/The%20Core%20Entropy%20Plot.ipynb)
 
+If you want to run them locally:
+```shell
+$(mandel_thurston) jupyter notebook
+```
+or
+```shell
+$(mandel_thurston) jupyter notebook --no-browser
+```
+and copy the url `http://localhost:8888/?token=<bunch_of_characters>`  in the browser
+Then navigate to the `scripts` directory and open the notebook.
+
 
 ## Install requirements
 > This package uses python version 3.8 (or above, but I haven't tested them yet)
@@ -42,7 +53,7 @@ More to come...
 3. Install the required packages, make sure you are in the root directory of this repo
     ```shell
     $(mandel_thurston) pip install -r requirements.txt
-    $(mandel_thurston) pip install -e . # install this package
+    $(mandel_thurston) pip install -e . # install this package DONOT FORGET THE .
     ```
 
 ### with conda
