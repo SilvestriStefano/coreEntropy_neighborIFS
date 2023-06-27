@@ -5,7 +5,8 @@ from os import path
 
 import numpy as np
 from fractions import Fraction as Frac
-from sympy import *
+from sympy import Symbol, S, Function, Intersection, ConditionSet, Abs, simplify, solveset
+from sympy.core import Add
 
 import logging
 import logging.config
@@ -19,26 +20,40 @@ logger = logging.getLogger("default")
 
 
 class Angle:
-    def __init__(self,num:int,den:int):
-        """       
+    def __init__(self,num:int=None,den:int=None,*,th:str=None):
+        """
+        Choose between initializing with two integers or a string
+
         Parameters
         ----------
         num: int
             the numerator
-        
         den: int
             the denominator
-
+        th: str
+            The rational angle in string format
         """
-        self.num = num
-        self.den = den
+
+        if num is not None and den is not None:
+            self.num = num
+            self.den = den
+        if th is not None:
+            theta = th.split("/")
+            try:
+                self.num = int(theta[0])
+                self.den = int(theta[1])
+            except ValueError:
+                raise ValueError("Please provide a valid angle string (e.g. '3/4')") from None
+            except IndexError:
+                raise ValueError("Please provide a valid angle string (e.g. '3/4')") from None
+
         self.frac = Frac(self.num,self.den)
 
     def __repr__(self):
         return f"Angle({self.num},{self.den})"
         
     def __str__(self):
-        return f"The angle is {self.frac}"
+        return f"{self.num}/{self.den}"
 
     def orbit(self)->list:
         """
@@ -50,6 +65,9 @@ class Angle:
             It is a list of Frac elements.
         
         """
+        if getattr(self,"orbit_list",None): # avoid recalculating if it already exists
+            return self.orbit_list
+        
         self.orbit_list=[Frac(self.num,self.den)]
         while len(set(self.orbit_list)) == len(self.orbit_list):
             self.orbit_list.append(self.orbit_list[-1]*Frac(2,1)%1) #double it modulo 1
@@ -67,16 +85,15 @@ class Angle:
             The second entry of the tuple is `start_index_per`, the index of where the periodic part of the orbit starts.
         
         """
-        try: 
-            orb = self.orbit_list
-        except AttributeError as e:
-            logger.debug("period()->orbit was not called, calling it now.")
-            orb = self.orbit()
+
+        if getattr(self,"per_len",None) and getattr(self,"start_index_per",None): # avoid recalculating if it already exists
+            return (self.per_len,self.start_index_per)
+        
+        orb = self.orbit()
         
         self.start_index_per = orb.index(orb[-1]) #where the period starts in the orbit
         self.per_len = (len(orb)-self.start_index_per)-1 #length of the period in ks
         return (self.per_len,self.start_index_per)
-
 
     def ks_from_angle(self)->str:
         """
@@ -88,12 +105,12 @@ class Angle:
             The kneading sequence.
         
         """
+
+        if getattr(self,"ks",None): # avoid recalculating if it already exists
+            return self.ks
+        
         self.ks=''
-        try: 
-            orb = self.orbit_list
-        except AttributeError as e:
-            logger.debug("ks_from_angle()->orbit was not called, calling it now")
-            orb = self.orbit()
+        orb = self.orbit()
 
         for numb in orb:
             if Frac(self.num,2*self.den) < numb < Frac(self.num+self.den,2*self.den):
@@ -102,22 +119,9 @@ class Angle:
                 self.ks+='*'
             else:
                 self.ks+='0'
-        
-        # try: 
-        #     self.per_len
-        # except:
-        #     # print("  ks_from_angle()->period was not called")
-        #     self.period()
-        #     # print("  ----------ks_from_angle()2------------")
 
         self.ks=self.ks[:-1]
-        # if period_length==1:
-        #     self.ks=self.ks[:-1]
-        #     self.ks+='0'
-        # else:
-        #     self.ks=self.ks[:-1]
         return self.ks
-
     
     def attr_itin_from_ks(self)->str:
         """
@@ -133,14 +137,14 @@ class Angle:
             The itinerary of 0 in the attractor.
         
         """
+
+        if getattr(self,"itin",None): # avoid recalculating if it already exists
+            return self.itin
+        
         self.itin='+-' #we assume that ks starts with 1
         lastSign='-' #the current last symbol in the itinerary
 
-        try:
-            kn_seq = self.ks
-        except AttributeError as e:
-            logger.debug("attr_itin_from_ks()->ks_from_angle was not called, calling it now")
-            kn_seq = self.ks_from_angle()
+        kn_seq = self.ks_from_angle()
 
         for vi in kn_seq[1:]:
             if vi=='1':
@@ -158,14 +162,7 @@ class Angle:
                     self.itin+='-'
                     lastSign='-'
 
-        try: 
-            period_length = self.per_len
-            starting_index = self.start_index_per
-        except:
-            # print("    attr_itin_from_ks()->either orbit and-or period was not called")
-            self.orbit()
-            period_length, starting_index = self.period()
-            # print("    -------------------attr_itin_from_ks()2-----------------------")
+        period_length, starting_index = self.period()
 
         if period_length==1:
             #if the period of ks is 1, then the itin is complete, so remove the last char
@@ -193,7 +190,6 @@ class Angle:
                 self.itin+=temp
         return self.itin
 
-
     def period_length_itin(self)->int:
         """
         finds the period length of the itinerary of 0 in the attractor.
@@ -203,15 +199,14 @@ class Angle:
         itin_per_len: int
             The length of the periodic part of the itinerary.
         """
-        try:
-            it = self.itin
-        except AttributeError as e:
-            logger.debug("period_length_itin()->attr_itin_from_ks was not called, calling it now")
-            it = self.attr_itin_from_ks()
+
+        if getattr(self,"itin_per_len",None): # avoid recalculating if it already exists
+            return self.itin_per_len
+        
+        it = self.attr_itin_from_ks()
 
         self.itin_per_len = self.per_len if self.per_len==1 else (len(it)-self.start_index_per-1)
         return self.itin_per_len
-
 
     def itin_to_rat(self, *, pow_symb:str = '**')->str:
         """
@@ -230,16 +225,18 @@ class Angle:
             The numerator (polynomial) of the rational function which vanishes at lambda.
 
         """
-        try:
-            it = self.itin
-        except AttributeError as e:
-            logger.debug("itin_to_rat()->attr_itin_from_ks was not called, calling it now")
-            it = self.attr_itin_from_ks()
-        try:
-            it_period = self.itin_per_len
-        except AttributeError as e:
-            logger.debug("itin_to_rat()->period_length_itin was not called, calling it now")
-            it_period = self.period_length_itin()
+
+        if getattr(self,"rat_func",None): # avoid recalculating if it already exists
+            symb_split = self.rat_func.split(pow_symb)
+            if len(symb_split)>1: 
+                return self.rat_func
+            else: 
+                old_symb = "**" if pow_symb =="^" else "^"
+                self.rat_func = self.rat_func.replace(old_symb,pow_symb)
+                return self.rat_func
+        
+        it = self.attr_itin_from_ks()
+        it_period = self.period_length_itin()
 
         self.rat_func = '('
         
@@ -257,32 +254,33 @@ class Angle:
                 self.rat_func += sign+'x'+pow_symb+str(index)
         return self.rat_func
 
-    def assoc_lambda(self)->complex:
+    def assoc_lambda(self)->Add:
         """
-        find the roots of the associated rational function inside the disc of radius 2^(-0.5)+10^(-15).
+        find the roots of the associated rational function inside the disc of radius 2^(-0.5)+10^(-14).
         If none is found it returns 0.+0.j.
         
         Return
         ------
-        lam: complex
+        lam: sympy.core.add.Add
             The complex number *associated* to the Misiurewicz parameter.
+            To get the value simply cast its type to complex: `complex(lam)`.
         """
-        try:
-            num_poly = self.rat_func.replace('^','**')
-        except AttributeError as e:
-            logger.debug("assoc_lambda()->itin_to_rat was not called, calling it now.")
-            num_poly = self.itin_to_rat()
+
+        if getattr(self,"lam",None): # avoid recalculating if it already exists
+            return self.lam
+        
+        num_poly = self.itin_to_rat()
 
         x = Symbol('x')
         f = Function('f')(x)
 
         f = simplify(num_poly)
         allroots = solveset(f)
-        la = Intersection(allroots,ConditionSet(x,( np.abs(x)<=(1/np.sqrt(2)+1e-15) ), S.Complexes ))
+        la = Intersection(allroots, ConditionSet(x,( Abs(x)<=(1/np.sqrt(2)+1e-14) ), S.Complexes))
         try:
             self.lam = la.args[0]
             # raise Exception("possibly no roots")
         except IndexError as e:
-            logger.error("Could not find any viable solution inside the disk of radius 2^(-0.5)")
+            logger.error(f"{self}; Could not find any viable solution inside the disk of radius 2^(-0.5)")
             self.lam = 0.+0.j
         return self.lam

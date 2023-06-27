@@ -46,16 +46,16 @@ def is_child_neighbor(test_nbh:Neighbor, valid_nbhs:set, param:complex)->tuple:
     is_new = test_nbh not in valid_nbhs
     
     if is_new: # test_nbh is POSSIBLY a new vertex
-        logger.debug(f"\t {test_nbh.word} is POSSIBLY a new neighbor")
+        logger.debug(f"{param:.5f};\t {test_nbh.word} is POSSIBLY a new neighbor")
         h_val = Abs(test_nbh.val)
         if h_val.evalf(prec)<=critical_rad or Abs(h_val-critical_rad).evalf(prec)<=err:
-            logger.debug(f"\t{test_nbh.word} IS a child vertex\n")
+            logger.debug(f"{param:.5f};\t {test_nbh.word} IS a child vertex\n")
             is_child = True # test_nbh IS a child vertex
         else: # phi_Star is NOT a VALID neighbor 
-            logger.debug(f"\t{test_nbh.word} is NOT a new neighbor:\n\t\t {h_val=} {critical_rad=}\n")
+            logger.debug(f"{param:.5f};\t {test_nbh.word} is NOT a new neighbor:\n\t\t {h_val=} {critical_rad=}\n")
             is_child = False
     else: # phi_Star ALREADY EXISTS
-        logger.debug(f"\t {test_nbh.word} ALREADY EXISTS\n")
+        logger.debug(f"{param:.5f}; \t {test_nbh.word} ALREADY EXISTS\n")
         is_child = True
     return (is_new,is_child)
 
@@ -229,7 +229,7 @@ def nbhG(param:complex, max_depth:int)->tuple:
             #in the case that all the computed neighbors are not valid
             #save the current Neighbor in a list 
             if not is_child_Star and not is_child_PM and not is_child_MP:
-                logger.debug("No new child Neighbors")
+                logger.debug(f"{param:.5f}; {current_word} has no new child Neighbors")
                 nbh_without_child.append(current_nbh)
             
         #if there are Neighbors without children
@@ -237,7 +237,7 @@ def nbhG(param:complex, max_depth:int)->tuple:
         #and update the lookup dictionary
         if len(nbh_without_child)!=0:
             for elem in nbh_without_child:
-                logger.debug("...removing from valid Neighbors the ones with no children")
+                logger.debug(f"{param:.5f}; ...removing from valid Neighbors the ones with no children")
                 valid_neighbors.remove(elem)
                 valid_neighbors = {nbh.filter_children(elem.word) for nbh in valid_neighbors}
                 del nbh_lookup[elem._hash]
@@ -251,7 +251,7 @@ def nbhG(param:complex, max_depth:int)->tuple:
         
     #clean up Neighbors with no children
     #NOTE: it might not find them all.
-    logger.debug("...another clean up of Neighbors without children")
+    logger.debug(f"{param:.5f}; ...another clean up of Neighbors without children")
     valid_neighbors = {nbh for nbh in valid_neighbors if len(nbh.children)>0}
     
     return valid_neighbors, nbh_lookup

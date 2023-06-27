@@ -4,8 +4,8 @@ Module that contains functions
 from os import path
 from typing import Union
 from src.utils import nbhG
+from src.angles import Angle
 
-from src import angles as ang
 from fractions import Fraction as Frac
 from numpy import array as nparray
 from numpy import ones as npones
@@ -83,9 +83,11 @@ def neighbor_graph(param:Union[int,float,complex], max_depth:int)->dict:
     return nbh_graph
 
 
-def core_entropy(*,num:int, den:int)->float64:
+def core_entropy(*,num:int=None, den:int=None, angle:Angle=None)->float64:
     """
-    Calculates the core entropy for a given rational angle. 
+    Calculates the core entropy for a given rational angle.
+    Choose between passing two integers (num and den) or an
+    Angle element.
     
     Parameters
     ----------
@@ -93,20 +95,26 @@ def core_entropy(*,num:int, den:int)->float64:
       The numerator of the rational angle.
     den: int
       The denominator of the rational angle.
+    angle: Angle
+      The rational angle as Angle type.
     
     Returns
     -------
     numpy.float64
       The core entropy
     """
-    
-    if type(num) is not int or type(den) is not int:
-        raise ValueError("Arguments should be integers or strings of integer")
-    if type(int(num)) is not int or type(int(den)) is not int:
-        raise ValueError("Arguments should be integers or strings of integer")
 
-    #define a new rational angle
-    theta = ang.Angle(num,den)
+    if num is not None and den is not None:
+        if type(num) is not int or type(den) is not int:
+            raise ValueError("Arguments should be integers or strings of integer")
+        if type(int(num)) is not int or type(int(den)) is not int:
+            raise ValueError("Arguments should be integers or strings of integer")
+        theta = Angle(num=num,den=den)
+
+    if angle is not None:
+        if type(angle) is not Angle:
+            raise ValueError("angle should be of type Angle")
+        theta = angle
     
     thetaFr = theta.frac #represent it as a fraction
 
@@ -116,20 +124,20 @@ def core_entropy(*,num:int, den:int)->float64:
         return 1.0
    
     #compute the orbit and find the period
+    orb = theta.orbit()
     period_length, period_start = theta.period()
-    orb = theta.orbit_list
     preperiod_length = len(orb)-1-period_length
     
     #partition of the circle
     intOne = (thetaFr*Frac(1,2),(thetaFr+Frac(1,1))*Frac(1,2))
     intTwo = (intOne[1],intOne[0])
     
-    logger.debug(f"The angle is {thetaFr} \n which has a preperiod of {preperiod_length} and a period of {period_length} \n and the orbit is {orb}\n")
-    logger.debug(f"partition the circle in two intervals: {intOne} and {intTwo}\n") #{(intOne[1],intOne[0])}\n") #
+    logger.debug(f"{theta}; preperiod:{preperiod_length};  period: {period_length} ; orbit: {orb}")
+    logger.debug(f"{theta}; partition the circle in two intervals: {intOne} and {intTwo}")
     
     #create the vertex set of the wedge
     tuples = nparray(["%d-%d"%(i,j) for i in range(1,len(orb)) for j in range(1,len(orb)) if i<j])
-    logger.debug(f"tuples is {tuples}\n")
+    logger.debug(f"{theta}; vertex set {tuples}")
     
     #define the separated and non-separated vertices
     dicTuples = {}
@@ -143,12 +151,13 @@ def core_entropy(*,num:int, den:int)->float64:
         j=int(j)
         max_ind = len(orb)-1
         
-        logger.debug(f"the tuple {tup} corresponding to the angles {orb[i-1]} and {orb[j-1]}")
+        logger.debug(f"{theta}; {tup} corresponding to the angles {orb[i-1]} and {orb[j-1]}")
 
         if (
             (intOne[0]<=orb[i-1]<intOne[1] and intOne[0]<=orb[j-1]<intOne[1]) or 
-            ((intTwo[0]<=orb[i-1] or orb[i-1]<intTwo[1]) and (intTwo[0]<=orb[j-1] or orb[j-1]<intTwo[1]))):
-            logger.debug(f"the tuple {tup} is not separated.")
+            ((intTwo[0]<=orb[i-1] or orb[i-1]<intTwo[1]) and (intTwo[0]<=orb[j-1] or orb[j-1]<intTwo[1]))
+            ):
+            logger.debug(f"{theta}; the tuple {tup} is not separated.")
             
             if (j+1)<=max_ind:
                 target = str(i+1)+'-'+str(j+1)
@@ -156,39 +165,39 @@ def core_entropy(*,num:int, den:int)->float64:
                 new_j = period_start+1 
                 new_i = i+1
                 target = str(new_i)+'-'+str(new_j) if new_i<new_j else str(new_j)+'-'+str(new_i)
-            logger.debug(f"target = {target}")
+            logger.debug(f"{theta}; target = {target}")
             try:
                 index = npwhere(tuples==target)[0][0]
             except IndexError:
-                logger.error(f"{theta}; there is no tuple {target}")
+                logger.warn(f"{theta}; the not-separated tuple {tup} has target {target} which cannot be found in {tuples}")
             else:
-                logger.debug(f"the target is {target} which has index {index}\n")
+                logger.debug(f"{theta}; found {target} at index {index}")
                 indices = npappend(indices,index)
 
             dicTuples.update({tup:{'sep':False,'mapsTo':[target]}})
             entries += 1
         else:
-            logger.debug(f"the tuple {tup} is separated")
+            logger.debug(f"{theta}; the tuple {tup} is separated")
             target_one = str(1)+'-'+str(i+1) if (i+1)<=max_ind else str(1)+'-'+str(period_start+1 if (period_start+1)!=1 else 0 )
-            logger.debug(f"target one = {target_one}")
+            logger.debug(f"{theta}; target one = {target_one}")
 
             target_two = str(1)+'-'+str(j+1) if (j+1)<=max_ind else str(1)+'-'+str(period_start+1 if (period_start+1)!=1 else 0 )
-            logger.debug(f"target two = {target_two}")
+            logger.debug(f"{theta}; target two = {target_two}")
             
             try: 
                 index_one = npwhere(tuples==target_one)[0][0]
             except IndexError:
-                logger.error(f"{theta}; there is no tuple {target_one}")
+                logger.warn(f"{theta}; the separated tuple {tup} has target {target_one} which cannot be found in {tuples}")
             else:
-                logger.debug(f"the target_one is {target_one} which has index {index_one}")
+                logger.debug(f"{theta}; found {target_one} at index {index_one}")
                 indices = npappend(indices,index_one)
                 entries+=1
             try:
                 index_two = npwhere(tuples==target_two)[0][0]
             except IndexError:
-                logger.error(f"{theta}; there is no tuple {target_two}")
+                logger.warn(f"{theta}; the separated tuple {tup} has target {target_two} which cannot be found in {tuples}")
             else:
-                logger.debug(f"the target_two is {target_two} which has index {index_two}\n")
+                logger.debug(f"{theta}; found {target_two} at index {index_two}")
                 indices = npappend(indices,index_two)
                 entries+=1
             

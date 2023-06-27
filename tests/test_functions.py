@@ -1,4 +1,5 @@
-from src.functions import core_entropy, create_nbh_graph
+from src.functions import core_entropy, neighbor_graph
+from src.angles import Angle
 from pytest import approx, raises, mark
 
 @mark.parametrize("test_num_exact,test_den_exact,expected",[
@@ -6,7 +7,7 @@ from pytest import approx, raises, mark
     (1,2,2.0),
     (1,1,1.0)
     ],ids=["0/1","1/2","1/1"])
-def test_core_entropy_exact(test_num_exact,test_den_exact,expected):
+def test_core_entropy_numden_exact(test_num_exact,test_den_exact,expected):
     """
     check that the core_entropy returns the exact values for allowable input
     """
@@ -26,6 +27,18 @@ def test_core_entropy_approx(test_num_approx,test_den_approx,expected):
 
     assert core_entropy(num=test_num_approx,den=test_den_approx) == approx(expected)
 
+@mark.parametrize("test_angle_exact,expected",[
+    (Angle(1,2),2.0),
+    (Angle(th="2/7"),1.0),
+    (Angle(3,14),1.6180339)
+    ],ids=["1/2","2/7","3/14"])
+def test_core_entropy_angle(test_angle_exact,expected):
+    """
+    check that the core_entropy returns approx values for Angle input
+    """
+
+    assert core_entropy(angle=test_angle_exact) == approx(expected)
+
 @mark.parametrize("test_num_val,test_den_val",[
     ("numerator","denominator"),
     ("numerator","1"),
@@ -38,13 +51,29 @@ def test_core_entropy_approx(test_num_approx,test_den_approx,expected):
     (3+9j,1+0j),
     (1+0j,1+0j)
     ],ids=["str str","str char","str float","str int","char str","float str","int str","char char","3+9i 1+0i","1+0i 1+0i"])
-def test_core_entropy_ValueErrors(test_num_val,test_den_val):
+def test_core_entropy_numden_ValueErrors(test_num_val,test_den_val):
     """
     check that the core_entropy raises ValueError for not allowed input
     """
     
     with raises(ValueError): 
         core_entropy(num=test_num_val,den=test_den_val)
+
+@mark.parametrize("test_angle",[
+    "numerator",
+    "1",
+    1.0,
+    1,
+    3+9j
+    ],ids=["str","char","float","int","complex"])
+def test_core_entropy_angle_ValueErrors(test_angle):
+    """
+    check that the core_entropy raises ValueError for not allowed input
+    """
+    
+    with raises(ValueError): 
+        core_entropy(angle=test_angle)
+
 
 lambdas = [
     (0.25+0.15*1j,"disconnected"),
@@ -101,11 +130,11 @@ expected_nbhg = [
 @mark.parametrize("test_param,test_depth,expected",
                   [(lam[0],8,ex_ang) for lam, ex_ang in zip(lambdas,expected_nbhg)],
                   ids=[lam[1] for lam in lambdas])
-def test_create_nbh_graph(test_param,test_depth,expected):
+def test_neighbor_graph(test_param,test_depth,expected):
     """
     check it creates the correct neighbor graph
     """
-    test_nbh = create_nbh_graph(test_param,test_depth)
+    test_nbh = neighbor_graph(test_param,test_depth)
     assert test_nbh == expected
 
 @mark.parametrize("test_param,test_depth",
@@ -115,10 +144,10 @@ def test_create_nbh_graph(test_param,test_depth,expected):
                    (3+9j,0.5),
                    (1+0j,1+0j)],
                   ids=["str str","char char","int float","complex float","complex complex"])
-def test_create_nbh_graph_ValueError(test_param,test_depth):
+def test_neighbor_graph_ValueError(test_param,test_depth):
     """
-    check that the create_nbh_graph raises ValueError for not allowed input
+    check that the neighbor_graph raises ValueError for not allowed input
     """
     
     with raises(ValueError): 
-        create_nbh_graph(test_param,test_depth)
+        neighbor_graph(test_param,test_depth)
