@@ -19,7 +19,7 @@ class Neighbor:
         self._hash = hash(complex(round(self.val.real,13),round(self.val.imag,13)))
 
     def __repr__(self)->str:
-        return f"\n\titinerary: {self.word}\n\tvalue: {self.val}\n\tparents: {self.parents}\n\tchildren: {self.children}\n\tedges: {self.edges}\n\thash: {self._hash}\n"
+        return f"Neighbor({self.word})"
     
     def __hash__(self)->int:
         return self._hash
