@@ -2,6 +2,7 @@
 Module that contains dynamics properties of a rational angle
 """
 from os import path
+from typing import Union
 
 import numpy as np
 from fractions import Fraction as Frac
@@ -123,7 +124,7 @@ class Angle:
         self.ks=self.ks[:-1]
         return self.ks
     
-    def attr_itin_from_ks(self)->str:
+    def attr_itin_from_ks(self)->Union[str,None]:
         """
         finds the itinerary of 0 in the attractor given the kneading sequence 
         associated to the angle num/den.
@@ -135,6 +136,8 @@ class Angle:
         ------
         itin: string
             The itinerary of 0 in the attractor.
+        None 
+            if the angle is strictly periodic
         
         """
 
@@ -145,7 +148,12 @@ class Angle:
         lastSign='-' #the current last symbol in the itinerary
 
         kn_seq = self.ks_from_angle()
-
+        
+        if kn_seq[-1]=='*':
+            logger.warning(f"{self} is a periodic angle, thus the Kneading Sequence cannot be converted to an itinerary in the attractor of an IFS.")
+            self.itin = None
+            return self.itin
+        
         for vi in kn_seq[1:]:
             if vi=='1':
                 if lastSign=='+':
@@ -190,7 +198,7 @@ class Angle:
                 self.itin+=temp
         return self.itin
 
-    def period_length_itin(self)->int:
+    def period_length_itin(self)->Union[int,None]:
         """
         finds the period length of the itinerary of 0 in the attractor.
         
@@ -198,17 +206,23 @@ class Angle:
         ------
         itin_per_len: int
             The length of the periodic part of the itinerary.
+        None
+            If the angle is strictly periodic.
         """
 
         if getattr(self,"itin_per_len",None): # avoid recalculating if it already exists
             return self.itin_per_len
         
         it = self.attr_itin_from_ks()
-
+        
+        if it is None:
+            self.itin_per_len = None
+            return self.itin_per_len
+        
         self.itin_per_len = self.per_len if self.per_len==1 else (len(it)-self.start_index_per-1)
         return self.itin_per_len
 
-    def itin_to_rat(self, *, pow_symb:str = '**')->str:
+    def itin_to_rat(self, *, pow_symb:str = '**')->Union[str,None]:
         """
         finds the numerator of the rational function associated to the itinerary of 0.
 
@@ -223,7 +237,8 @@ class Angle:
         ------
         rat_func: string
             The numerator (polynomial) of the rational function which vanishes at lambda.
-
+        None
+            If the angle is strictly periodic
         """
 
         if getattr(self,"rat_func",None): # avoid recalculating if it already exists
@@ -236,6 +251,11 @@ class Angle:
                 return self.rat_func
         
         it = self.attr_itin_from_ks()
+        
+        if it is None:
+            self.rat_func = None
+            return self.rat_func
+        
         it_period = self.period_length_itin()
 
         self.rat_func = '('
@@ -254,7 +274,7 @@ class Angle:
                 self.rat_func += sign+'x'+pow_symb+str(index)
         return self.rat_func
 
-    def assoc_lambda(self)->Add:
+    def assoc_lambda(self)->Union[Add,None]:
         """
         find the roots of the associated rational function inside the disc of radius 2^(-0.5)+10^(-14).
         If none is found it returns 0.+0.j.
@@ -264,12 +284,18 @@ class Angle:
         lam: sympy.core.add.Add
             The complex number *associated* to the Misiurewicz parameter.
             To get the value simply cast its type to complex: `complex(lam)`.
+        None
+            If the angle is strictly periodic
         """
 
         if getattr(self,"lam",None): # avoid recalculating if it already exists
             return self.lam
         
         num_poly = self.itin_to_rat()
+
+        if num_poly is None:
+            self.lam = None
+            return self.lam
 
         x = Symbol('x')
         f = Function('f')(x)

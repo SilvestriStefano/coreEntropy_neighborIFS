@@ -13,16 +13,7 @@ def pytest_generate_tests(metafunc):
         ids=funcidslist
     )
 
-test_data = {
-    "0/1": {
-        "angle":Angle(0,1),
-        "period":(1,0),
-        "ks_from_angle": "*",
-        "attr_itin_from_ks": "+",
-        "period_length_itin": 1,
-        "itin_to_rat": "1",
-        "assoc_lambda": 0.+0.j
-    },
+preperiodic_angles = {
     "1/2": {
         "angle":Angle(1,2),
         "period":(1,1),
@@ -79,16 +70,16 @@ test_data = {
     }
 } 
 
-class TestAngle:
+class TestPreperiodicAngle:
     params = {
-        "test_period": [{"test_angle": v["angle"], "expected": v["period"]} for _,v in test_data.items()],
-        "test_ks_from_angle": [{"test_angle": v["angle"], "expected": v["ks_from_angle"]} for _,v in test_data.items()],
-        "test_attr_itin_from_ks": [{"test_angle": v["angle"], "expected": v["attr_itin_from_ks"]} for _,v in test_data.items()],
-        "test_period_length_itin": [{"test_angle":v["angle"], "expected": v["period_length_itin"]} for _,v in test_data.items()],
-        "test_itin_to_rat": [{"test_angle":v["angle"], "expected": v["itin_to_rat"]} for _,v in test_data.items()],
-        "test_assoc_lambda": [{"test_angle":v["angle"], "expected": v["assoc_lambda"]} for _,v in test_data.items()]
+        "test_period": [{"test_angle": v["angle"], "expected": v["period"]} for _,v in preperiodic_angles.items()],
+        "test_ks_from_angle": [{"test_angle": v["angle"], "expected": v["ks_from_angle"]} for _,v in preperiodic_angles.items()],
+        "test_attr_itin_from_ks": [{"test_angle": v["angle"], "expected": v["attr_itin_from_ks"]} for _,v in preperiodic_angles.items()],
+        "test_period_length_itin": [{"test_angle":v["angle"], "expected": v["period_length_itin"]} for _,v in preperiodic_angles.items()],
+        "test_itin_to_rat": [{"test_angle":v["angle"], "expected": v["itin_to_rat"]} for _,v in preperiodic_angles.items()],
+        "test_assoc_lambda": [{"test_angle":v["angle"], "expected": v["assoc_lambda"]} for _,v in preperiodic_angles.items()]
     }
-    ids = {func : [key for key in test_data] for func in params}
+    ids = {func : [key for key in preperiodic_angles] for func in params}
 
     def test_period(self, test_angle,expected):
         assert test_angle.period() == expected
@@ -109,3 +100,62 @@ class TestAngle:
         lam = complex(test_angle.assoc_lambda()) # need to cast from <class 'sympy.core.add.Add'>
         lam = lam if lam.imag>0 else lam.conjugate() # always want positive imaginary part
         assert lam == approx(expected, rel=1e-15)
+
+periodic_angles = {
+    "0/1": {
+        "angle":Angle(0,1),
+        "period":(1,0),
+        "ks_from_angle": "*",
+        "attr_itin_from_ks": None,
+        "period_length_itin": None,
+        "itin_to_rat": None,
+        "assoc_lambda": None
+    },
+    "1/7": {
+        "angle":Angle(1,7),
+        "period":(3,0),
+        "ks_from_angle": "11*",
+        "attr_itin_from_ks": None,
+        "period_length_itin": None,
+        "itin_to_rat": None,
+        "assoc_lambda": None
+    },
+    "2/5": {
+        "angle":Angle(2,5),
+        "period":(4,0),
+        "ks_from_angle": "101*",
+        "attr_itin_from_ks": None,
+        "period_length_itin": None,
+        "itin_to_rat": None,
+        "assoc_lambda": None
+    },
+}
+
+class TestPeriodicAngle:
+    params = {
+        "test_period": [{"test_angle": v["angle"], "expected": v["period"]} for _,v in periodic_angles.items()],
+        "test_ks_from_angle": [{"test_angle": v["angle"], "expected": v["ks_from_angle"]} for _,v in periodic_angles.items()],
+        "test_attr_itin_from_ks": [{"test_angle": v["angle"], "expected": v["attr_itin_from_ks"]} for _,v in periodic_angles.items()],
+        "test_period_length_itin": [{"test_angle":v["angle"], "expected": v["period_length_itin"]} for _,v in periodic_angles.items()],
+        "test_itin_to_rat": [{"test_angle":v["angle"], "expected": v["itin_to_rat"]} for _,v in periodic_angles.items()],
+        "test_assoc_lambda": [{"test_angle":v["angle"], "expected": v["assoc_lambda"]} for _,v in periodic_angles.items()]
+    }
+    ids = {func : [key for key in periodic_angles] for func in params}
+    
+    def test_period(self, test_angle,expected):
+        assert test_angle.period() == expected
+
+    def test_ks_from_angle(self, test_angle,expected):
+        assert test_angle.ks_from_angle() == expected
+    
+    def test_attr_itin_from_ks(self,test_angle,expected):
+        assert test_angle.attr_itin_from_ks() == expected
+    
+    def test_period_length_itin(self,test_angle,expected):
+        assert test_angle.period_length_itin() == expected
+    
+    def test_itin_to_rat(self,test_angle,expected):
+        assert test_angle.itin_to_rat() == expected
+
+    def test_assoc_lambda(self,test_angle,expected):
+        assert test_angle.assoc_lambda() == expected
