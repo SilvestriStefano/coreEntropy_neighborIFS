@@ -3,7 +3,7 @@ Module that contains functions
 """
 from os import path
 from typing import Union
-from src.utils import nbhG
+from src.utils import nbhG, allsequences, non_escaping_sequences
 from src.angles import Angle
 
 from fractions import Fraction as Frac
@@ -11,6 +11,7 @@ from numpy import array as nparray
 from numpy import ones as npones
 from numpy import where as npwhere
 from numpy import append as npappend
+from numpy import flip as npflip
 from numpy import float64
 
 from scipy.sparse import csr_matrix
@@ -82,6 +83,16 @@ def neighbor_graph(param:Union[int,float,complex], max_depth:int)->dict:
         nbh_graph.update({vertex_label:connected_to})
     return nbh_graph
 
+def solomyak_alg(param:complex, depth:int=3)->list:
+    """
+    Implementation of a variant of Solomyak2005 algorithm
+    to check that for a given parameter c all power series
+    in F_c have a certain initial part. 
+    """
+    sequences = allsequences(depth,[1,0,-1],all=True)
+    seq_flip = nparray([npflip(s) for s in sequences])
+    results = non_escaping_sequences(param, seq_flip)
+    return results
 
 def core_entropy(*,num:int=None, den:int=None, angle:Angle=None)->float64:
     """

@@ -6,6 +6,7 @@ from sympy import Symbol, Function, Abs
 
 import numpy as np
 from numba import njit, prange
+from numba.typed import List
 
 import logging
 import logging.config
@@ -256,11 +257,12 @@ def nbhG(param:complex, max_depth:int)->tuple:
     
     return valid_neighbors, nbh_lookup
 
-def allsequences(n:int, terms:list=[1,-1])->np.ndarray:
+def allsequences(n:int, terms:list=[1,-1] ,*,all:bool=False)->np.ndarray:
     """
     Generates from the elements in `terms` the list of all sequences 
-    of length `n` starting with `terms[0]`.
-    If `terms=[1,0,-1]` it excludes the sequence `[1,0,0,0,..]`
+    of length `n`.
+    If `all=False` the sequences start with `terms[0]` and if 
+    `terms=[1,0,-1]` it excludes the sequence `[1,0,0,0,..]`.
 
     Parameters
     ----------
@@ -269,6 +271,9 @@ def allsequences(n:int, terms:list=[1,-1])->np.ndarray:
     terms: list
         Optional. Elements with which to construct the sequences.
         Default is `[1,-1]`.
+    all: bool
+        Decide wheter to include all possible sequences.
+        Default is False. 
 
     Return
     ------
@@ -277,22 +282,36 @@ def allsequences(n:int, terms:list=[1,-1])->np.ndarray:
 
     Example
     -------
-    >>> seq = allsequences(3)
-    >>> print(seq)
+    >>> seq_all_false = allsequences(3)
+    >>> print(seq_all_f)
     array([[ 1, 1, 1],
            [ 1, 1,-1],
            [ 1,-1, 1],
            [ 1,-1,-1]])
+    >>> seq_all_true = allsequences(3,all=True)
+    >>> print(seq_all_true)
+    array([[ 1,  1,  1],
+           [ 1,  1, -1],
+           [ 1, -1,  1],
+           [ 1, -1, -1],
+           [-1,  1,  1],
+           [-1,  1, -1],
+           [-1, -1,  1],
+           [-1, -1, -1]])
     """
-    lst = []
+    
+    if all:
+        return np.array([seq for seq in product(terms, repeat=n)])
+    
+    lst = np.array([])
     for seq in product(terms, repeat=n):
         if np.all(np.equal(seq[1:],np.zeros(n-1))):
             continue
         if seq[0]==terms[0]: 
-            lst.append(seq)
+            lst = np.append(lst,seq)
         else:
             break
-    return np.asarray(lst)
+    return lst
 
 @njit
 def poly_eval(x:Union[int,float,complex],c:list)->Union[int,float,complex]:
@@ -363,3 +382,28 @@ def compute_green_MM0(pt_list:np.ndarray, level:int)->np.float64:
     """
     vals = np.log(np.min(np.abs(pt_list)))/level
     return vals
+
+@njit
+def non_escaping_sequences(param:complex, sequences:list)->list:
+    RAD = (1-np.abs(param))
+    return [s for s in sequences if np.abs(1+param*poly_eval(param,s))*RAD < np.abs(param**(len(s)+1))]
+
+def translate_str_to_int(i):
+    CONDITIONS = [(lambda i: i=="+", 1), (lambda i: i=="-", -1), (lambda i: i=="0", 0)]
+    for condition, replacement in CONDITIONS:
+        if condition(i): return replacement
+    return i
+
+def get_coefficients(sequence:str)->list:
+    return np.array(list(map(translate_str_to_int,sequence)))
+
+@njit
+def compare(sequence:list, s_list:list)->bool:
+    n = len(sequence)
+    for i,s in enumerate(s_list):
+        s_trim = s[:n]
+        if (s_trim==sequence).all():
+            continue
+        else:
+            return False
+    return True

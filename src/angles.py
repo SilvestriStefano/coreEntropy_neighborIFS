@@ -36,18 +36,18 @@ class Angle:
         """
 
         if num is not None and den is not None:
-            self.num = num
+            self.num = num if num < den else num % den
             self.den = den
         if th is not None:
             theta = th.split("/")
             try:
-                self.num = int(theta[0])
+                self.num = int(theta[0]) if int(theta[0]) < int(theta[1]) else int(theta[0]) % int(theta[1]) 
                 self.den = int(theta[1])
             except ValueError:
                 raise ValueError("Please provide a valid angle string (e.g. '3/4')") from None
             except IndexError:
                 raise ValueError("Please provide a valid angle string (e.g. '3/4')") from None
-
+        
         self.frac = Frac(self.num,self.den)
 
     def __repr__(self):
@@ -95,6 +95,35 @@ class Angle:
         self.start_index_per = orb.index(orb[-1]) #where the period starts in the orbit
         self.per_len = (len(orb)-self.start_index_per)-1 #length of the period in ks
         return (self.per_len,self.start_index_per)
+
+    def to_binary(self)->str:
+        """
+        Get the angle binary decomposition.
+        The period is indicated by a preceding `p`
+
+        Returns
+        -------
+        binary: str
+            The binary decomposition of the angle.
+        """
+
+        if getattr(self,"binary",None): # avoid recalculating if it already exists
+            return self.binary
+        
+        orb = self.orbit()
+        _, starting_index = self.period()
+
+        self.binary = ""
+        
+        for ind,numb in enumerate(orb[:-1]):
+            if ind==starting_index:
+                self.binary += "p"
+            if numb < Frac(1,2):
+                self.binary+='0'
+            else:
+                self.binary+='1'
+        
+        return self.binary
 
     def ks_from_angle(self)->str:
         """
@@ -302,11 +331,13 @@ class Angle:
 
         f = simplify(num_poly)
         allroots = solveset(f)
-        la = Intersection(allroots, ConditionSet(x,( Abs(x)<=(1/np.sqrt(2)+1e-14) ), S.Complexes))
+        la = Intersection(allroots, ConditionSet(x,( Abs(x)<=((1/2**(S(1)/2))+1e-14) ), S.Complexes))
         try:
             self.lam = la.args[0]
-            # raise Exception("possibly no roots")
-        except IndexError as e:
+        except IndexError:
             logger.error(f"{self}; Could not find any viable solution inside the disk of radius 2^(-0.5)")
+            self.lam = 0.+0.j
+        if type(self.lam)==ConditionSet:
+            logger.error(f"{self}; Found a ConditionSet solution, might want to use a different method.")
             self.lam = 0.+0.j
         return self.lam

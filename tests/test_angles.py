@@ -15,8 +15,9 @@ def pytest_generate_tests(metafunc):
 
 preperiodic_angles = {
     "1/2": {
-        "angle":Angle(1,2),
-        "period":(1,1),
+        "angle": Angle(1,2),
+        "binary": "1p0",
+        "period": (1,1),
         "ks_from_angle": "10",
         "attr_itin_from_ks": "+-",
         "period_length_itin": 1,
@@ -24,8 +25,9 @@ preperiodic_angles = {
         "assoc_lambda": 0.5+0.j
     },
     "1/6": {
-        "angle":Angle(1,6), # Tame Twin Dragon
-        "period":(2,1),
+        "angle": Angle(1,6), # Tame Twin Dragon
+        "binary": "0p01",
+        "period": (2,1),
         "ks_from_angle": "110",
         "attr_itin_from_ks": "+-++--",
         "period_length_itin": 4,
@@ -33,8 +35,9 @@ preperiodic_angles = {
         "assoc_lambda": 0.25+0.661437827766148j
     },
     "3/14": {
-        "angle":Angle(3,14),
-        "period":(3,1),
+        "angle": Angle(3,14),
+        "binary": "0p011",
+        "period": (3,1),
         "ks_from_angle": "1100",
         "attr_itin_from_ks": "+-+++---",
         "period_length_itin": 6,
@@ -42,8 +45,9 @@ preperiodic_angles = {
         "assoc_lambda": 0.366875964264129 + 0.520259438865201j
     },
     "3/8": {
-        "angle":Angle(3,8), #same as 21/56
-        "period":(1,3),
+        "angle": Angle(3,8), #same as 21/56
+        "binary": "011p0",
+        "period": (1,3),
         "ks_from_angle": "1010",
         "attr_itin_from_ks": "+--+",
         "period_length_itin": 1,
@@ -51,7 +55,8 @@ preperiodic_angles = {
         "assoc_lambda": 0.595743941976559 + 0.254425889416369j
     },
     "7/16": {
-        "angle":Angle(7,16), #same as 49/112
+        "angle": Angle(7,16), #same as 49/112
+        "binary": "0111p0",
         "period": (1,4),
         "ks_from_angle": "10010",
         "attr_itin_from_ks": "+---+",
@@ -60,8 +65,9 @@ preperiodic_angles = {
         "assoc_lambda": 0.636009824757034 + 0.106924311121288j
     },
     "55/256": {
-        "angle":Angle(55,256), #same as 385/1792 [CKW buried parameter]
-        "period":(1,8),
+        "angle": Angle(55,256), #same as 385/1792 [CKW buried parameter]
+        "binary": "00110111p0",
+        "period": (1,8),
         "ks_from_angle": "110010010",
         "attr_itin_from_ks": "+-+++---+",
         "period_length_itin": 1,
@@ -73,6 +79,7 @@ preperiodic_angles = {
 class TestPreperiodicAngle:
     params = {
         "test_period": [{"test_angle": v["angle"], "expected": v["period"]} for _,v in preperiodic_angles.items()],
+        "test_binary": [{"test_angle": v["angle"], "expected": v["binary"]} for _,v in preperiodic_angles.items()],
         "test_ks_from_angle": [{"test_angle": v["angle"], "expected": v["ks_from_angle"]} for _,v in preperiodic_angles.items()],
         "test_attr_itin_from_ks": [{"test_angle": v["angle"], "expected": v["attr_itin_from_ks"]} for _,v in preperiodic_angles.items()],
         "test_period_length_itin": [{"test_angle":v["angle"], "expected": v["period_length_itin"]} for _,v in preperiodic_angles.items()],
@@ -83,6 +90,9 @@ class TestPreperiodicAngle:
 
     def test_period(self, test_angle,expected):
         assert test_angle.period() == expected
+
+    def test_binary(self, test_angle,expected):
+        assert test_angle.to_binary() == expected
 
     def test_ks_from_angle(self, test_angle,expected):
         assert test_angle.ks_from_angle() == expected
@@ -103,8 +113,9 @@ class TestPreperiodicAngle:
 
 periodic_angles = {
     "0/1": {
-        "angle":Angle(0,1),
-        "period":(1,0),
+        "angle": Angle(0,1),
+        "binary": "p0",
+        "period": (1,0),
         "ks_from_angle": "*",
         "attr_itin_from_ks": None,
         "period_length_itin": None,
@@ -112,8 +123,9 @@ periodic_angles = {
         "assoc_lambda": None
     },
     "1/7": {
-        "angle":Angle(1,7),
-        "period":(3,0),
+        "angle": Angle(1,7),
+        "binary": "p001",
+        "period": (3,0),
         "ks_from_angle": "11*",
         "attr_itin_from_ks": None,
         "period_length_itin": None,
@@ -121,8 +133,9 @@ periodic_angles = {
         "assoc_lambda": None
     },
     "2/5": {
-        "angle":Angle(2,5),
-        "period":(4,0),
+        "angle": Angle(2,5),
+        "binary": "p0110",
+        "period": (4,0),
         "ks_from_angle": "101*",
         "attr_itin_from_ks": None,
         "period_length_itin": None,
@@ -134,6 +147,7 @@ periodic_angles = {
 class TestPeriodicAngle:
     params = {
         "test_period": [{"test_angle": v["angle"], "expected": v["period"]} for _,v in periodic_angles.items()],
+        "test_binary": [{"test_angle": v["angle"], "expected": v["binary"]} for _,v in periodic_angles.items()],
         "test_ks_from_angle": [{"test_angle": v["angle"], "expected": v["ks_from_angle"]} for _,v in periodic_angles.items()],
         "test_attr_itin_from_ks": [{"test_angle": v["angle"], "expected": v["attr_itin_from_ks"]} for _,v in periodic_angles.items()],
         "test_period_length_itin": [{"test_angle":v["angle"], "expected": v["period_length_itin"]} for _,v in periodic_angles.items()],
@@ -144,6 +158,9 @@ class TestPeriodicAngle:
     
     def test_period(self, test_angle,expected):
         assert test_angle.period() == expected
+
+    def test_binary(self, test_angle,expected):
+        assert test_angle.to_binary() == expected
 
     def test_ks_from_angle(self, test_angle,expected):
         assert test_angle.ks_from_angle() == expected

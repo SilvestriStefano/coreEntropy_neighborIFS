@@ -70,11 +70,12 @@ def checkPolyPZM(z, currVal, n, maxDeg):
     result: int
         the degree of the polynomial
     """
+    
     if n == maxDeg:
         return n
     
     #Check if this polynomial is too large
-    if (np.abs(currVal) > (np.abs(z)**(n+1)/(1 - np.abs(z))) ):
+    if (np.abs(currVal)*(1 - np.abs(z)) > (np.abs(z)**(n+1)) ):
         return n-1
     
     #Still good. Keep going: only keep the branch that doesn't die
@@ -105,15 +106,16 @@ def checkPolyPM(z, currVal, n, maxDeg):
     result: int
         the degree of the polynomial
     """
+    
     if n == maxDeg:
         return n
     
     #Check if this polynomial is too large
-    if (np.abs(currVal) > (np.abs(z)**(n+1)/(1 - np.abs(z))) ):
+    if (np.abs(currVal)*(1 - np.abs(z)) > (np.abs(z)**(n+1)) ):
         return n-1
     
     #Still good. Keep going: only keep the branch that doesn't die
-    result = np.maximum(checkPolyPZM(z, currVal + z**(n+1), n+1, maxDeg), checkPolyPZM(z, currVal - z**(n+1), n+1, maxDeg) )
+    result = np.maximum(checkPolyPM(z, currVal + z**(n+1), n+1, maxDeg), checkPolyPM(z, currVal - z**(n+1), n+1, maxDeg) )
     return result
 
 def green_MM0(which:str, c:np.ndarray, level:int, x_dim:int = 500, y_dim:int = 500):
